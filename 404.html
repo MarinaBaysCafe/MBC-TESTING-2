@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<!-- Copyright (c) 2026 Marina Bay's Cafe. All rights reserved. -->
+<!-- GitHub Pages shows this for any address that does not exist. Old page addresses are sent to their new place. -->
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Page not found | Marina Bay's Cafe</title>
+<style>body{font:16px/1.5 system-ui,sans-serif;margin:0;padding:32px 20px;color:#14262e}a{color:#0d3a4e;font-weight:700}</style>
+<script>
+(function () {
+  var LEGACY = {"pos.html": "apps/pos/", "receipts.html": "apps/receipts/", "shift.html": "apps/shift/", "inventory.html": "apps/inventory/", "recipes.html": "apps/recipes/", "menu.html": "apps/menu/", "expenses.html": "apps/expenses/", "money-counter.html": "apps/money-counter/", "calendar.html": "apps/calendar/", "analytics.html": "apps/analytics/", "checks.html": "apps/checks/", "data.html": "apps/data/", "settings.html": "apps/settings/", "printers.html": "apps/printers/", "security.html": "apps/security/", "sync.html": "apps/sync/", "qr-print.html": "apps/qr-print/", "menu-public.html": "apps/public-menu/", "tests.html": "tests/"};
+  var seg = location.pathname.split('/').pop();
+  if (Object.prototype.hasOwnProperty.call(LEGACY, seg)) { location.replace(LEGACY[seg] + location.search + location.hash); return; }
+  var i = location.pathname.indexOf('/apps/'), root = i >= 0 ? location.pathname.slice(0, i + 1) : location.pathname.replace(/[^/]*$/, '');
+  document.addEventListener('DOMContentLoaded', function () { document.getElementById('home').href = root + 'apps/home/'; });
+})();
+</script></head>
+<body><h1>Page not found</h1><p>This page does not exist.</p><p><a id="home" href="apps/home/">Open Marina Bay's Cafe</a></p></body></html>

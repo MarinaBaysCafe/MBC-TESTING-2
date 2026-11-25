@@ -1,0 +1,53 @@
+/* Editable app settings: payment methods, discount presets, inventory units, auto-print.
+   Defaults match the old hard-coded behavior. Stored under CFG_KEY. */
+(function () {
+  var KEY = 'marinabays_config_v1';
+  function defaults() {
+    return {
+      autoPrint: true,
+      vatRegistered: false,     // VAT-registered: PWD and Senior discounts come off the VAT-free price, and sale receipts show a VAT line
+      vatPct: 12,
+      methods: [{ id: 'cash', name: 'Cash', cash: true }, { id: 'ewallet', name: 'E-wallet', cash: false }],
+      discounts: [
+        { id: 'pwd', name: 'PWD', pct: 20 },
+        { id: 'senior', name: 'Senior Citizen', pct: 20 },
+        { id: 'employee', name: 'Employee', pct: 10 }
+      ],
+      units: ['pcs', 'box', 'pack', 'bottle'],
+      discRules: { stack: false, limitPct: 0 }   // stack: several discounts may be added up. limitPct: a manual discount above this percent needs the PIN (0 = always)
+    };
+  }
+  function load() {
+    var d = defaults();
+    try {
+      var v = JSON.parse(localStorage.getItem(KEY));
+      if (v) {
+        if (typeof v.autoPrint === 'boolean') d.autoPrint = v.autoPrint;
+        if (typeof v.vatRegistered === 'boolean') d.vatRegistered = v.vatRegistered;
+        var vp = Number(v.vatPct); if (isFinite(vp) && vp > 0 && vp < 100) d.vatPct = vp;
+        ['methods', 'discounts', 'units'].forEach(function (k) { if (Array.isArray(v[k]) && v[k].length) d[k] = v[k]; });
+        if (v.discRules && typeof v.discRules === 'object') {
+          if (typeof v.discRules.stack === 'boolean') d.discRules.stack = v.discRules.stack;
+          var lp = Number(v.discRules.limitPct); if (isFinite(lp) && lp >= 0 && lp <= 100) d.discRules.limitPct = lp;
+        }
+      }
+    } catch (e) {}
+    if (!d.methods.some(function (m) { return m.id === 'cash'; })) d.methods.unshift(defaults().methods[0]);
+    return d;
+  }
+  var cfg = load();
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(cfg)); return true; } catch (e) { return false; } }
+  function uid(p) { return p + '-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5); }
+  /* Safe reset: only settings, never sales, shifts, menu, inventory or recipes.
+     A backup copy of the current settings is kept under KEY+'_backup' so it can be undone. */
+  function resetSettings() {
+    try { localStorage.setItem(KEY + '_backup', JSON.stringify(cfg)); } catch (e) {}
+    cfg = defaults(); return save();
+  }
+  function undoReset() {
+    try { var b = JSON.parse(localStorage.getItem(KEY + '_backup')); if (b) { cfg = b; return save(); } } catch (e) {}
+    return false;
+  }
+  window.MBConfig = { get: function () { return cfg; }, save: save, uid: uid, defaults: defaults, resetSettings: resetSettings, undoReset: undoReset,
+    hasBackup: function () { return !!localStorage.getItem(KEY + '_backup'); } };
+})();
