@@ -43,7 +43,7 @@
 <body class="pg-menu">
 <div class="app">
   <div class="top">
-    <a href="../home/" aria-label="Home" style="display:flex"><img src="../../shared/icons/logo-64.png" alt=""></a>
+    <a class="logo" href="../home/" aria-label="Home"><img src="../../shared/icons/logo-64.png" alt=""></a>
     <div><b>Marina Bay's Cafe</b><span class="sub">Menu QR code</span></div>
     <nav class="apps" aria-label="Apps"><a href="../menu/">Menu</a><a href="../home/">All apps</a></nav>
   </div>
@@ -55,7 +55,7 @@
       <div class="frow"><label for="qTables">Table numbers</label><input class="field" id="qTables" type="text" maxlength="120" placeholder="Empty for one card, or 1-10" autocomplete="off"></div>
       <div class="frow"><label for="qUrl">Menu address</label><input class="field" id="qUrl" type="url" autocomplete="off"></div>
       <p class="help2" id="qMsg" role="status"></p>
-      <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap"><button class="primary" id="qPrint" type="button">Print or save as PDF</button><a class="text-btn" id="qTest" href="../public-menu/" target="_blank" rel="noopener" style="min-height:44px;display:inline-flex;align-items:center">Open the menu page</a></div>
+      <div class="btnrow"><button class="primary" id="qPrint" type="button">Print or save as PDF</button><a class="text-btn tap" id="qTest" href="../public-menu/" target="_blank" rel="noopener">Open the menu page</a></div>
     </div>
   </main>
   <div class="cards" id="cards" aria-label="Preview"></div>

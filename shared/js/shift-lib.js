@@ -71,10 +71,12 @@
     shifts.hist.forEach(function (h) { if (h.no > mx) mx = h.no; });
     shifts.nextNo = Math.max(shifts.nextNo || 1, Number(st.nextNo) || 1, mx + 1, shifts.cur ? shifts.cur.no + 1 : 1);
   }
-  function saveSales() { try { mergeSales(); localStorage.setItem(SALES_KEY, JSON.stringify(sales)); return true; } catch (e) { return false; } }
-  function saveShifts() { try { mergeShifts(); localStorage.setItem(SHIFTS_KEY, JSON.stringify(shifts)); return true; } catch (e) { return false; } }
+  var rev = 0;      // goes up whenever the sales or shifts change, so the analytics index below knows when to rebuild
+  function saveSales() { rev++; try { mergeSales(); localStorage.setItem(SALES_KEY, JSON.stringify(sales)); return true; } catch (e) { return false; } }
+  function saveShifts() { rev++; try { mergeShifts(); localStorage.setItem(SHIFTS_KEY, JSON.stringify(shifts)); return true; } catch (e) { return false; } }
   // another tab changed the saved orders or shifts: load them here too
   window.addEventListener('storage', function (e) {
+    rev++;
     if (e.key === SALES_KEY || e.key === null) {
       var vs = load(SALES_KEY, { sales: [] }); sales.sales = Array.isArray(vs.sales) ? vs.sales : [];
     }
@@ -354,6 +356,13 @@
     });
     return idx;
   }
+  // the analytics page asks for the index on every paint: keep it until sales, shifts, expenses or counted cash change
+  var idxMemo = null;
+  function cachedIndex() {
+    var e = null, m = null; try { e = localStorage.getItem(EXP_KEY); m = localStorage.getItem(MONEY_KEY); } catch (x) {}
+    if (!idxMemo || idxMemo.rev !== rev || idxMemo.e !== e || idxMemo.m !== m) idxMemo = { rev: rev, e: e, m: m, idx: buildIndex() };
+    return idxMemo.idx;
+  }
   function day(date) { return buildIndex()[date] || emptyDay(date); }
   // totals for each day of a month, and the month's total
   function month(y, m) {
@@ -430,26 +439,36 @@
     shifts.hist.push(r); shifts.cur = null; rememberUser(r.closedBy); saveShifts(); return r;
   }
 
+  /* One modal for confirms and the refund box (styles: .mdl in app.css). Resolves { ok, stock, reason }.
+     o: title, detail, reasons (drop-down list), check (label of a tick box), ok, cancel, danger */
+  function modal(o) {
+    o = o || {};
+    return new Promise(function (resolve) {
+      var d = document.createElement('div'), r = o.reasons;
+      d.className = 'mdl'; d.setAttribute('role', 'dialog'); d.setAttribute('aria-modal', 'true');
+      d.innerHTML = '<div class="mdl-box"><b class="mdl-t">' + D.esc(o.title || 'Please confirm') + '</b>' +
+        (o.detail ? '<p class="mdl-d">' + D.esc(o.detail) + '</p>' : '') +
+        (r ? '<label class="mdl-l" for="mdlWhy">Reason</label><select class="field full" id="mdlWhy">' + r.map(function (w) { return '<option>' + D.esc(w) + '</option>'; }).join('') + '</select>' : '') +
+        (o.check ? '<label class="mdl-chk"><input id="mdlChk" type="checkbox"> ' + D.esc(o.check) + '</label>' : '') +
+        '<div class="mdl-btns"><button id="mdlNo" type="button" class="secondary">' + D.esc(o.cancel || 'Cancel') + '</button>' +
+        '<button id="mdlOk" type="button" class="primary' + (o.danger ? ' danger' : '') + '">' + D.esc(o.ok || 'OK') + '</button></div></div>';
+      document.body.appendChild(d);
+      function done(v) { d.removeEventListener('keydown', key); d.remove(); resolve(v); }
+      function yes() { done({ ok: true, stock: !!(o.check && d.querySelector('#mdlChk').checked), reason: r ? d.querySelector('#mdlWhy').value : '' }); }
+      function key(e) { if (e.key === 'Enter' && e.target.tagName !== 'BUTTON') { e.preventDefault(); yes(); } else if (e.key === 'Escape') done({ ok: false, stock: false, reason: '' }); }
+      d.querySelector('#mdlOk').onclick = yes;
+      d.querySelector('#mdlNo').onclick = function () { done({ ok: false, stock: false, reason: '' }); };
+      d.addEventListener('keydown', key);
+      (d.querySelector('#mdlWhy') || d.querySelector('#mdlOk')).focus();
+    });
+  }
+  // yes / no question: resolves true or false
+  function ask(msg, okLabel, title) { return modal({ title: title || 'Please confirm', detail: msg, ok: okLabel || 'OK', danger: /^Delete/.test(okLabel || '') }).then(function (r) { return r.ok; }); }
   /* Refund box: why, and whether the cups and lids go back in stock. Resolves { ok, stock, reason }. */
   var REFUND_WHY = ['Wrong order', 'Customer changed mind', 'Drink not right', 'Cashier mistake', 'Other'];
   function refundPrompt(o) {
     o = o || {};
-    return new Promise(function (resolve) {
-      var d = document.createElement('div'), st = 'width:100%;box-sizing:border-box;font:inherit;font-size:16px;padding:10px;border:1px solid #c9c1b5;border-radius:8px;background:#fff;color:#1c2b33';
-      d.style.cssText = 'position:fixed;inset:0;z-index:99997;background:rgba(6,30,42,.6);display:flex;align-items:center;justify-content:center;padding:20px';
-      d.innerHTML = '<div style="background:#fff;color:#1c2b33;border-radius:12px;padding:18px;width:100%;max-width:320px;font-family:inherit">' +
-        '<b style="font-size:17px">' + D.esc(o.title || 'Refund') + '</b>' +
-        (o.detail ? '<p style="margin:6px 0 10px;font-size:14px;color:#5b6b73">' + D.esc(o.detail) + '</p>' : '') +
-        '<label style="display:block;font-size:13px;color:#5b6b73;margin-bottom:4px" for="mbrWhy">Reason</label>' +
-        '<select id="mbrWhy" style="' + st + '">' + REFUND_WHY.map(function (w) { return '<option>' + D.esc(w) + '</option>'; }).join('') + '</select>' +
-        '<label style="display:flex;gap:10px;align-items:center;margin:12px 0;font-size:15px"><input id="mbrStock" type="checkbox" style="width:20px;height:20px;flex:none"> Return cups/lids to stock?</label>' +
-        '<div style="display:flex;gap:8px"><button id="mbrNo" type="button" style="flex:1;height:44px;border:1px solid #c9c1b5;background:#fff;color:#1c2b33;border-radius:8px;font:inherit;cursor:pointer">Cancel</button>' +
-        '<button id="mbrOk" type="button" style="flex:1;height:44px;border:none;background:#b3261e;color:#fff;border-radius:8px;font:inherit;font-weight:650;cursor:pointer">Refund</button></div></div>';
-      document.body.appendChild(d);
-      function done(r) { d.remove(); resolve(r); }
-      d.querySelector('#mbrOk').onclick = function () { done({ ok: true, stock: d.querySelector('#mbrStock').checked, reason: d.querySelector('#mbrWhy').value }); };
-      d.querySelector('#mbrNo').onclick = function () { done({ ok: false, stock: false, reason: '' }); };
-    });
+    return modal({ title: o.title || 'Refund', detail: o.detail, reasons: REFUND_WHY, check: 'Return cups/lids to stock?', ok: 'Refund', danger: true });
   }
 
   /* ---------- receipts (p is the printer's line builder) ---------- */
@@ -579,8 +598,8 @@
   window.MBShift = {
     num: num, sg: sg, fmtDT: fmtDT, fmtTime: fmtTime, phDate: phDate, r2: r2, cupName: cupName, lidName: lidName,
     sales: function () { return sales.sales; }, salesOf: salesOf, makeSale: makeSale, cashOf: cashOf, addSale: addSale, refund: refund, deleteSale: deleteSale, deleteShift: deleteShift, renumber: renumber, syncWarning: syncWarning, shortages: shortages, uncounted: uncounted,
-    shifts: function () { return shifts; }, saveShifts: saveShifts, index: buildIndex, day: day, month: month, settleShift: settleShift, current: current, start: start, close: close, report: report, lastActual: lastActual,
+    shifts: function () { return shifts; }, saveShifts: saveShifts, index: cachedIndex, day: day, month: month, settleShift: settleShift, current: current, start: start, close: close, report: report, lastActual: lastActual,
     lastStart: lastStart, saveSales: saveSales, posName: posName, setPosName: setPosName, lastUser: lastUser, countedCash: countedCash, expensesBetween: expensesBetween,
-    reportReceipt: reportReceipt, saleReceipt: saleReceipt, orderReceipt: orderReceipt, typeText: typeText, cafe: cafe, nextQ: nextQ, refundPrompt: refundPrompt
+    reportReceipt: reportReceipt, saleReceipt: saleReceipt, orderReceipt: orderReceipt, typeText: typeText, cafe: cafe, nextQ: nextQ, refundPrompt: refundPrompt, modal: modal, ask: ask
   };
 })();

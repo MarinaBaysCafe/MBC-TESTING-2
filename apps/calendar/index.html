@@ -58,7 +58,7 @@
   table.inv td input { width: 64px; text-align: right; border: 1px solid var(--line); border-radius: 4px; padding: 4px; font: inherit; }
   table.inv tr.g td { background: var(--soft); font-weight: 650; text-align: left; }
   .seg2 { display: flex; border: 1.5px solid #c9c1b5; border-radius: 6px; overflow: hidden; }
-  .seg2 button { border: none; background: #fff; font: inherit; font-size: 15px; padding: 8px 16px; color: var(--ink); cursor: pointer; }
+  .seg2 button { border: none; background: #fff; font: inherit; font-size: 15px; padding: 8px 16px; min-height: 44px; color: var(--ink); cursor: pointer; }
   .seg2 button + button { border-left: 1.5px solid #c9c1b5; }
   .seg2 button.on { background: var(--teal); color: #fff; font-weight: 650; }
 </style>
@@ -68,7 +68,7 @@
 <body class="pg-calendar">
 <div class="app">
   <div class="top">
-    <a href="../home/" aria-label="Home" style="display:flex"><img src="../../shared/icons/logo-64.png" alt=""></a>
+    <a class="logo" href="../home/" aria-label="Home"><img src="../../shared/icons/logo-64.png" alt=""></a>
     <div><b>Marina Bay's Cafe</b><span class="sub">Calendar</span></div>
     <nav class="apps" aria-label="Apps"><a href="../analytics/">Analytics</a><a href="../home/">All apps</a></nav>
   </div>
@@ -175,12 +175,12 @@
     var late = selected < today && selected >= MBInvLog.addDays(today, -MBInvLog.LATE_DAYS);
     if (selected === today || late) {
       h += '<div class="inv-add"><div class="seg2"><button data-kind="used" class="' + (invKind === 'used' ? 'on' : '') + '">Used</button><button data-kind="add" class="' + (invKind === 'add' ? 'on' : '') + '">Added</button></div>' +
-        '<input class="field" id="invQ" type="search" placeholder="Search item" value="' + esc(invSearch) + '">' +
+        '<input autocomplete="off" class="field" id="invQ" type="search" placeholder="Search item" value="' + esc(invSearch) + '">' +
         '<select class="field" id="invSel">' + optHtml(rows) + '</select>' +
-        '<input class="field num" id="invAmt" type="number" inputmode="decimal" min="0" step="any" placeholder="Amount">' +
+        '<input autocomplete="off" class="field num" id="invAmt" type="number" inputmode="decimal" min="0" step="any" placeholder="Amount">' +
         '<button class="primary" id="invDone">Done</button></div>' +
-        '<div class="note" style="padding:0 16px 8px;font-size:12px;color:var(--muted)">Used is for loss or anything not counted from sales. Cups and lids are added automatically when a shift is closed. To fix a wrong count, recount on the Inventory page.</div>' + (late ? '<div class="note" style="padding:0 16px 8px;font-size:12px;color:var(--bad)">Late entry for this day. The stock count today changes by the same amount, and the days after this one are updated.</div>' : '');
-    } else h += '<div class="note" style="padding:0 16px 8px;font-size:12px;color:var(--muted)">' + (selected > today ? 'Stock cannot be changed for a day that has not happened yet.' : 'Late entries only go back ' + MBInvLog.LATE_DAYS + ' days.') + '</div>';
+        '<div class="note sm">Used is for loss or anything not counted from sales. Cups and lids are added automatically when a shift is closed. To fix a wrong count, recount on the Inventory page.</div>' + (late ? '<div class="note" style="padding:0 16px 8px;font-size:12px;color:var(--bad)">Late entry for this day. The stock count today changes by the same amount, and the days after this one are updated.</div>' : '');
+    } else h += '<div class="note sm">' + (selected > today ? 'Stock cannot be changed for a day that has not happened yet.' : 'Late entries only go back ' + MBInvLog.LATE_DAYS + ' days.') + '</div>';
     h += '<div class="inv-wrap"><table class="inv"><thead><tr><th>Item</th><th>Beg</th><th>Added</th><th>Used</th><th>End</th><th>Units</th></tr></thead><tbody>';
     var last = null;
     shown.forEach(function (r) {

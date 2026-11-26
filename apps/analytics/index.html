@@ -17,7 +17,7 @@
   .chips2 button { flex: none; border: 1.5px solid #c9c1b5; background: #fff; color: var(--ink); border-radius: 18px; font: inherit; font-size: 14px; padding: 7px 14px; cursor: pointer; }
   .chips2 button.on { background: var(--teal); border-color: var(--teal); color: #fff; font-weight: 650; }
   .daterow { display: flex; align-items: center; gap: 8px; padding: 6px 16px 4px; font-size: 14px; color: var(--muted); }
-  .daterow input { flex: 1; min-width: 0; height: 40px; border: 1.5px solid #c9c1b5; border-radius: 6px; padding: 0 8px; font: inherit; background: #fff; color: var(--ink); }
+  .daterow input { flex: 1; min-width: 0; height: 44px; border: 1.5px solid #c9c1b5; border-radius: 6px; padding: 0 8px; font: inherit; background: #fff; color: var(--ink); }
   .cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; padding: 12px 16px 4px; }
   .card { border: 1px solid var(--line); border-radius: 10px; padding: 12px; background: #fff; }
   .card small { display: block; font-size: 12px; color: var(--muted); }
@@ -44,6 +44,7 @@
   table.dt th { font-size: 12px; color: var(--muted); font-weight: 600; border-top: none; }
   table.dt a { color: var(--teal); text-decoration: none; }
   .neg { color: var(--bad); }
+  .box h4 { margin: 12px 0 4px; font-size: 14px; }
   .note2 { padding: 10px 16px 24px; font-size: 12px; color: var(--muted); }
   @media (min-width: 768px) { .cards { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
 </style>
@@ -53,7 +54,7 @@
 <body class="pg-narrow">
 <div class="app">
   <div class="top">
-    <a href="../home/" aria-label="Home" style="display:flex"><img src="../../shared/icons/logo-64.png" alt=""></a>
+    <a class="logo" href="../home/" aria-label="Home"><img src="../../shared/icons/logo-64.png" alt=""></a>
     <div><b>Marina Bay's Cafe</b><span class="sub">Analytics</span></div>
     <nav class="apps" aria-label="Apps"><a href="../calendar/">Calendar</a><a href="../home/">All apps</a></nav>
   </div>
@@ -153,7 +154,7 @@
     });
     if (!tot) return '<div class="box"><h3>Discounts</h3><p class="why">No discounts in this period.</p></div>';
     function rows(o) { return Object.keys(o).map(function (k) { return { t: k, v: M.fromC(o[k]) }; }).sort(function (a, b) { return b.v - a.v; }).slice(0, 8); }
-    function sub(t) { return '<h4 style="margin:12px 0 4px;font-size:14px">' + t + '</h4>'; }
+    function sub(t) { return '<h4>' + t + '</h4>'; }
     return '<div class="box"><h3>Discounts</h3><p class="why">' + N(M.fromC(tot)) + ' given on ' + cnt + (cnt === 1 ? ' order' : ' orders') +
       (gross ? ' (' + (tot / M.toC(gross) * 100).toFixed(1) + '% of sales before discounts)' : '') + '. Refunded orders are not counted. The employee is the one who opened the shift.</p>' +
       sub('By type') + hbars(rows(byType), OUT, N) + sub('By employee') + hbars(rows(byEmp), OUT, N) + sub('By item') + hbars(rows(byItem), OUT, N) + '</div>';
@@ -180,7 +181,7 @@
     }
     function rowsOf(o, f, take) { return Object.keys(o).map(function (k) { return f(k, o[k]); }).sort(function (a, b) { return b.v - a.v; }).slice(0, take || 12); }
     function cnt(n) { return String(n); }
-    function sub(t) { return '<h4 style="margin:12px 0 4px;font-size:14px">' + t + '</h4>'; }
+    function sub(t) { return '<h4>' + t + '</h4>'; }
     function box(t, why, inner) { return '<div class="box"><h3>' + t + '</h3>' + (why ? '<p class="why">' + why + '</p>' : '') + inner + '</div>'; }
     S.sales().forEach(function (s) {
       var emp = s.emp || 'Not recorded';
@@ -257,7 +258,7 @@
     var cats = {}, totExp = 0;
     for (var k = from; k <= to; k = addDays(k, 1)) if (idx[k]) idx[k].expenses.forEach(function (e) { cats[e.cat] = (cats[e.cat] || 0) + e.amt; totExp += e.amt; });
     var cr = Object.keys(cats).map(function (c) { return { t: c, v: S.r2(cats[c]), s: totExp ? (cats[c] / totExp * 100).toFixed(0) + '%' : '' }; }).sort(function (a, b) { return b.v - a.v; });
-    h += '<div class="box"><h3>Where the money goes</h3><p class="why">Expenses by category.</p>' + (cr.length ? hbars(cr, OUT, N) : '<div class="empty" style="padding:6px 0">No expenses in this period.</div>') + '</div>';
+    h += '<div class="box"><h3>Where the money goes</h3><p class="why">Expenses by category.</p>' + (cr.length ? hbars(cr, OUT, N) : '<div class="empty sm">No expenses in this period.</div>') + '</div>';
 
     // how people pay and order type
     var dine = 0, take = 0, orders = 0, rev = 0, hours = {}, items = {};
@@ -300,7 +301,7 @@
       var pf2 = S.r2(xx.net - xx.expCash - xx.expOnline);
       tr += '<tr><td><a href="../calendar/?date=' + d2 + '">' + dl(d2) + '</a></td><td class="num">' + N(xx.net) + '</td><td class="num">' + N(xx.expCash + xx.expOnline) + '</td><td class="num ' + (pf2 < 0 ? 'neg' : '') + '">' + N(pf2) + '</td></tr>';
     }
-    h += '<div class="box"><h3>Day by day</h3>' + (tr ? '<table class="dt"><tr><th>Day</th><th>Income</th><th>Expenses</th><th>Profit</th></tr>' + tr + '</table>' : '<div class="empty" style="padding:6px 0">Nothing recorded in this period.</div>') + '</div>';
+    h += '<div class="box"><h3>Day by day</h3>' + (tr ? '<table class="dt"><tr><th>Day</th><th>Income</th><th>Expenses</th><th>Profit</th></tr>' + tr + '</table>' : '<div class="empty sm">Nothing recorded in this period.</div>') + '</div>';
     $('body').innerHTML = h;
   }
 

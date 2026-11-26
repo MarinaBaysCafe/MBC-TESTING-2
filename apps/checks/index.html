@@ -17,7 +17,7 @@
   .issue b { display: block; font-size: 16px; }
   .issue p { margin: 3px 0 10px; font-size: 14px; color: var(--muted); }
   .opts { display: flex; flex-wrap: wrap; gap: 8px; }
-  .opts a, .opts button { text-decoration: none; display: inline-flex; align-items: center; min-height: 40px; padding: 0 14px; border: 1.5px solid var(--teal); border-radius: 6px; background: #fff; color: var(--teal); font: inherit; font-size: 14px; font-weight: 650; cursor: pointer; }
+  .opts a, .opts button { text-decoration: none; display: inline-flex; align-items: center; min-height: 44px; padding: 0 14px; border: 1.5px solid var(--teal); border-radius: 6px; background: #fff; color: var(--teal); font: inherit; font-size: 14px; font-weight: 650; cursor: pointer; }
   .opts .quiet { border-color: #c9c1b5; color: var(--ink); font-weight: 500; }
   .opts .danger { border-color: var(--bad); color: var(--bad); }
   .good { padding: 28px 16px; text-align: center; }
@@ -29,7 +29,7 @@
 <body class="pg-narrow">
 <div class="app">
   <div class="top">
-    <a href="../home/" aria-label="Home" style="display:flex"><img src="../../shared/icons/logo-64.png" alt=""></a>
+    <a class="logo" href="../home/" aria-label="Home"><img src="../../shared/icons/logo-64.png" alt=""></a>
     <div><b>Marina Bay's Cafe</b><span class="sub">Check data</span></div>
     <nav class="apps" aria-label="Apps"><a href="../analytics/">Analytics</a><a href="../home/">All apps</a></nav>
   </div>
@@ -50,7 +50,7 @@
   function paint() {
     issues = MBChecks.find();
     if (!issues.length) { list.innerHTML = '<div class="good"><b>All clear</b>No odd records found in sales, shifts, expenses or the money counter.</div>'; return; }
-    list.innerHTML = '<div class="sub-note" style="padding-top:12px">' + issues.length + (issues.length === 1 ? ' thing' : ' things') + ' to look at</div>' + issues.map(function (it, i) {
+    list.innerHTML = '<div class="sub-note top">' + issues.length + (issues.length === 1 ? ' thing' : ' things') + ' to look at</div>' + issues.map(function (it, i) {
       return '<div class="issue"><b>' + esc(it.title) + '</b><p>' + esc(it.detail) + '</p><div class="opts">' + it.choices.map(function (c, j) {
         var cls = c.keep ? 'quiet' : c.danger ? 'danger' : '';
         return c.href ? '<a href="' + esc(c.href) + '">' + esc(c.label) + '</a>' : '<button class="' + cls + '" data-i="' + i + '" data-j="' + j + '">' + esc(c.label) + '</button>';

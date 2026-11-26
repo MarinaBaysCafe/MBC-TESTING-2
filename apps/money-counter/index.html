@@ -18,47 +18,15 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" href="../../shared/icons/favicon-32.png">
 <link rel="apple-touch-icon" href="../../shared/icons/counter-apple-touch-icon.png">
+<link rel="stylesheet" href="../../shared/css/app.css">
 <style>
-  :root {
-    --ink: #1f1a17;
-    --muted: #7a7068;
-    --line: #e4dfd7;
-    --soft: #f5f2ec;
-    --teal: #0d3a4e;
-    --brown: #9b7952;
-    --bad: #a4372b;
-  }
-  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-  html, body { margin: 0; height: 100%; }
-  body {
-    font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    color: var(--ink);
-    background: var(--soft);
-    font-size: 16px;
-    line-height: 1.35;
-  }
-  .app {
-    max-width: 480px; margin: 0 auto; height: 100%;
-    display: flex; flex-direction: column;
-    background: #fff;
-    border-left: 1px solid var(--line); border-right: 1px solid var(--line);
-  }
-  .num { font-variant-numeric: tabular-nums; }
-
   /* top bar */
   .top {
     display: flex; align-items: center; gap: 10px;
     padding: calc(10px + env(safe-area-inset-top)) 16px 10px;
     border-bottom: 1px solid var(--line);
   }
-  .top img { width: 32px; height: 32px; }
-  .top b { font-size: 16px; font-weight: 650; }
-  .top span.sub { display: block; font-size: 12px; color: var(--muted); }
   .top { padding-right: 12px; }
-  .apps { margin-left: auto; display: flex; gap: 2px; }
-  .apps a { padding: 8px 10px; font-size: 14px; color: var(--muted); text-decoration: none; border-bottom: 2px solid transparent; }
-  .apps a.on { color: var(--ink); font-weight: 650; border-bottom-color: var(--teal); }
-
   .exp-sum { padding: 4px 16px 0; }
   .exp-sum .ln { display: flex; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid var(--line); font-size: 15px; }
   .exp-sum .ln span:first-child { color: var(--muted); }
@@ -72,12 +40,7 @@
   .exp-none { padding: 4px 16px 10px; font-size: 14px; color: var(--muted); }
   .exp-block .exp-sum { padding-top: 0; }
   .exp-link { display: inline-block; margin: 12px 16px 0; font-size: 14px; color: var(--teal); }
-
   /* views */
-  main { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
-  .view { display: none; }
-  .view.on { display: block; }
-
   /* day switcher */
   .daynav {
     display: flex; align-items: center; justify-content: space-between;
@@ -86,28 +49,22 @@
   .daynav .when { font-size: 17px; font-weight: 650; }
   .daynav .when small { display: block; font-size: 12px; font-weight: 400; color: var(--muted); }
   .arrows { display: flex; gap: 2px; }
-  .icon-btn {
-    width: 44px; height: 44px; border: none; background: none; color: var(--ink);
-    font-size: 24px; cursor: pointer; border-radius: 6px;
-  }
-  .icon-btn:active { background: var(--soft); }
-
   /* denomination rows */
   .row {
     display: flex; align-items: center; gap: 10px;
-    padding: 0 16px; height: 60px; border-bottom: 1px solid var(--line);
+    padding: 0 16px; height: 60px; border-top: 0; border-bottom: 1px solid var(--line);
   }
   .denom { width: 72px; font-size: 18px; font-weight: 650; }
   .ctrl { display: flex; align-items: center; gap: 6px; }
   .step {
-    width: 42px; height: 42px; border-radius: 6px; font-size: 22px; line-height: 1;
+    width: 44px; height: 44px; border-radius: 6px; font-size: 22px; line-height: 1;
     cursor: pointer; font-family: inherit;
   }
   .step.minus { background: #fff; color: var(--ink); border: 1.5px solid #c9c1b5; }
   .step.plus { background: var(--teal); color: #fff; border: 1.5px solid var(--teal); }
   .step:active { opacity: .75; }
   .qty {
-    width: 52px; height: 42px; text-align: center; font: inherit; font-size: 18px; font-weight: 600;
+    width: 52px; height: 44px; text-align: center; font: inherit; font-size: 18px; font-weight: 600;
     border: none; border-bottom: 1.5px solid #c9c1b5; border-radius: 0; background: none; color: var(--ink);
     -moz-appearance: textfield;
   }
@@ -115,7 +72,6 @@
   .qty:focus { outline: none; border-bottom-color: var(--teal); }
   .sub { margin-left: auto; font-size: 16px; text-align: right; }
   .sub.zero { color: #b5ada3; }
-
   .online-row {
     display: flex; align-items: center; justify-content: space-between; gap: 12px;
     padding: 12px 16px; background: var(--soft); border-bottom: 1px solid var(--line);
@@ -129,12 +85,10 @@
   }
   .money-input input:focus { outline: none; }
   .money-input input::-webkit-outer-spin-button, .money-input input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-
   .link-btn {
     display: block; margin: 16px; padding: 0; border: none; background: none;
     font: inherit; font-size: 14px; color: var(--bad); cursor: pointer; text-decoration: underline;
   }
-
   /* totals bar */
   .totals {
     display: grid; grid-template-columns: 1fr 1fr 1.2fr;
@@ -145,15 +99,8 @@
   .totals small { display: block; font-size: 11px; color: var(--muted); }
   .totals div:last-child small { color: #cfdde4; }
   .totals b { font-size: 17px; font-weight: 700; }
-
   /* tabs */
   .tabs { display: grid; grid-template-columns: repeat(3, 1fr); border-top: 1px solid var(--line); padding-bottom: env(safe-area-inset-bottom); background: #fff; }
-  .tab {
-    border: none; background: none; font: inherit; font-size: 14px; color: var(--muted);
-    padding: 13px 0 12px; cursor: pointer; border-top: 3px solid transparent; margin-top: -1px;
-  }
-  .tab.on { color: var(--teal); font-weight: 650; border-top-color: var(--teal); }
-
   /* calendar */
   .monthbar { display: flex; align-items: center; justify-content: space-between; padding: 8px 8px 8px 16px; }
   .monthbar h2 { margin: 0; font-size: 18px; font-weight: 650; }
@@ -172,22 +119,17 @@
   .cell.today .d { display: inline-block; width: 22px; height: 22px; line-height: 22px; text-align: center; border-radius: 50%; background: var(--ink); color: #fff; font-size: 13px; }
   .cell.sel { background: #e9f0f3; }
   .hint { padding: 0 16px 16px; font-size: 13px; color: var(--muted); }
-
   /* more */
   .list { padding: 8px 0; }
   .item { display: block; width: 100%; text-align: left; padding: 14px 16px; border: none; border-bottom: 1px solid var(--line); background: #fff; font: inherit; cursor: pointer; color: var(--ink); }
   .item b { display: block; font-weight: 650; }
   .item span { font-size: 13px; color: var(--muted); }
   .item:active { background: var(--soft); }
-  .note { padding: 14px 16px; font-size: 13px; color: var(--muted); }
-
   .toast {
     position: fixed; left: 50%; bottom: 130px; transform: translateX(-50%);
     background: var(--ink); color: #fff; padding: 8px 14px; border-radius: 6px; font-size: 13px;
     opacity: 0; pointer-events: none; transition: opacity .2s;
   }
-  .toast.on { opacity: 1; }
-  :focus-visible { outline: 2px solid var(--brown); outline-offset: 1px; }
   @media (prefers-reduced-motion: reduce) { .toast { transition: none; } }
 </style>
 <link rel="stylesheet" href="../../shared/css/wide.css">
@@ -196,7 +138,7 @@
 <body class="pg-counter">
 <div class="app">
   <div class="top">
-    <a href="../home/" aria-label="Home" style="display:flex"><img src="../../shared/icons/logo-64.png" alt=""></a>
+    <a class="logo" href="../home/" aria-label="Home"><img src="../../shared/icons/logo-64.png" alt=""></a>
     <div><b>Marina Bay's Cafe</b><span class="sub">Money counter</span></div>
     <nav class="apps" aria-label="Apps"><a href="../analytics/">Analytics</a><a href="../home/">All apps</a></nav>
   </div>
@@ -214,7 +156,7 @@
       <div id="rows"></div>
       <div class="online-row">
         <label for="online">Online payment</label>
-        <div class="money-input"><span>₱</span><input id="online" class="num" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0.00"></div>
+        <div class="money-input"><span>₱</span><input autocomplete="off" id="online" class="num" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0.00"></div>
       </div>
       <div class="exp-block" id="expBlock">
         <div class="exp-h">Expenses</div>
@@ -325,7 +267,7 @@
       '<div class="denom num">₱' + d.toLocaleString('en-PH') + '</div>' +
       '<div class="ctrl">' +
         '<button class="step minus" data-d="' + d + '" data-s="-1" aria-label="Remove one ' + d + ' peso bill or coin">&minus;</button>' +
-        '<input class="qty num" type="number" inputmode="numeric" min="0" step="1" data-d="' + d + '" aria-label="How many ' + d + '">' +
+        '<input autocomplete="off" class="qty num" type="number" inputmode="numeric" min="0" step="1" data-d="' + d + '" aria-label="How many ' + d + '">' +
         '<button class="step plus" data-d="' + d + '" data-s="1" aria-label="Add one ' + d + ' peso bill or coin">+</button>' +
       '</div>' +
       '<div class="sub num zero" id="sub' + d + '">₱0.00</div>';

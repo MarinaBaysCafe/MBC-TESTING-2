@@ -32,12 +32,13 @@
   .msg { padding: 0 16px 8px; font-size: 14px; color: var(--muted); }
   .mini { font-size: 13px; color: var(--muted); padding: 0 16px 10px; }
 </style>
+<link rel="stylesheet" href="../../shared/css/wide.css">
 <link rel="stylesheet" href="../../shared/css/brand.css">
 </head>
 <body class="pg-narrow">
 <div class="app">
   <div class="top">
-    <a href="../home/" aria-label="Home" style="display:flex"><img src="../../shared/icons/logo-64.png" alt=""></a>
+    <a class="logo" href="../home/" aria-label="Home"><img src="../../shared/icons/logo-64.png" alt=""></a>
     <div><b>Marina Bay's Cafe</b><span class="sub">Shift</span></div>
     <nav class="apps" aria-label="Apps"><a href="../pos/">POS</a><a href="../analytics/">Analytics</a><a href="../home/">All apps</a></nav>
   </div>
@@ -135,7 +136,7 @@
     if (!cur) {
       var last = S.lastStart(), hist = S.shifts().hist, prev = hist[hist.length - 1];
       h += '<div class="state"><b>No shift is open</b><span>Start a shift so sales can be saved and totaled.</span></div>' +
-        '<div class="frow"><label for="stCash">Starting cash</label><input class="field num" id="stCash" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0.00" value="' + esc(last) + '"></div>' +
+        '<div class="frow"><label for="stCash">Starting cash</label><input autocomplete="off" class="field num" id="stCash" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0.00" value="' + esc(last) + '"></div>' +
         '<div class="frow"><label for="stBy">Opened by</label><input class="field" id="stBy" type="text" maxlength="30" placeholder="Name" value="' + esc(S.lastUser()) + '" autocomplete="off"></div>' +
         '<div class="actions"><button class="primary" id="startBtn">Start shift</button></div>';
       if (prev) h += '<div class="mini">Last shift: number ' + prev.no + ', closed ' + esc(S.fmtDT(prev.closedAt)) + '. The starting cash is filled in with the same amount as before. Change it only if the drawer starts with a different amount.</div>';
@@ -147,19 +148,24 @@
     }
     $('shiftBody').innerHTML = h;
   }
-  $('shiftBody').addEventListener('click', function (e) {
+  $('shiftBody').addEventListener('click', async function (e) {
     var t = e.target;
     if (t.id === 'startBtn') {
       var v = $('stCash').value.trim();
       if (v === '' || isNaN(parseFloat(v)) || parseFloat(v) < 0) { D.toast('Enter the starting cash'); $('stCash').focus(); return; }
-      var w = S.syncWarning('start'); if (w && !confirm(w)) return;
+      var w = S.syncWarning('start'); if (w && !(await S.ask(w, 'Start anyway', 'Start the shift?'))) return;
       S.start(parseFloat(v), $('stBy').value); D.toast('Shift started'); paintShift();
     } else if (t.id === 'printLive') { var r = liveReport(); if (r) printReport(r); }
     else if (t.id === 'endBtn') openEnd();
   });
 
   /* ---------- end shift ---------- */
-  function openSheet() { $('shade').classList.add('on'); }
+  function openSheet() {
+    $('shade').classList.add('on');
+    var f = $('sheet').querySelector('input:not([type=checkbox]):not([type=radio])'); if (f) setTimeout(function () { f.focus(); }, 30);
+  }
+  $('sheet').addEventListener('keydown', function (e) { if (e.key === 'Enter' && e.target.id === 'enActual') { e.preventDefault(); $('enOnly').click(); } });
+  $('shiftBody').addEventListener('keydown', function (e) { if (e.key === 'Enter' && e.target.tagName === 'INPUT' && $('startBtn')) { e.preventDefault(); $('startBtn').click(); } });
   function closeSheet() { $('shade').classList.remove('on'); }
   $('shade').addEventListener('click', function (e) { if (e.target === $('shade') || e.target.closest('[data-close]')) closeSheet(); });
   function openEnd() {
@@ -167,7 +173,7 @@
     var r = S.report(cur), counted = S.countedCash(S.phDate(Date.now()));
     $('sheet').innerHTML = '<div class="sh-head"><div class="t"><b>End shift ' + cur.no + '</b><span>Expected cash ' + esc(N(r.expected)) + '</span></div><button class="icon-btn" data-close aria-label="Close">&times;</button></div><div class="sh-body">' +
       '<div class="help">Count the cash in the drawer. ' + (counted > 0 ? 'Today\'s count in the Money counter is ' + esc(N(counted)) + '.' : 'You can also count it in the Money counter first.') + '</div>' +
-      '<div class="frow"><label for="enActual">Actual cash amount</label><input class="field num" id="enActual" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0.00" value="' + (counted > 0 ? counted : '') + '"></div>' +
+      '<div class="frow"><label for="enActual">Actual cash amount</label><input autocomplete="off" class="field num" id="enActual" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0.00" value="' + (counted > 0 ? counted : '') + '"></div>' +
       '<div class="rrow strong"><span id="enDiffLabel">Difference</span><span class="num" id="enDiff">-</span></div>' +
       (r.drinks ? '<div class="help">The cups and lids used are taken off Inventory when the shift ends.</div>' : '') +
       '<div class="frow"><label for="enBy">Closed by</label><input class="field" id="enBy" type="text" maxlength="30" placeholder="Name" value="' + esc(S.lastUser() || cur.openedBy) + '" autocomplete="off"></div>' +
@@ -186,7 +192,7 @@
     if (id === 'enOnly' || id === 'enPrint') {
       var v = $('enActual').value.trim();
       if (v === '' || isNaN(parseFloat(v)) || parseFloat(v) < 0) { D.toast('Enter the actual cash amount'); $('enActual').focus(); return; }
-      var cw = S.syncWarning('close'); if (cw && !confirm(cw)) return;
+      var cw = S.syncWarning('close'); if (cw && !(await S.ask(cw, 'End anyway', 'End the shift?'))) return;
       var takeOut = true;
       var r = S.close($('enBy').value, parseFloat(v));
       S.settleShift(r.no); S.saveShifts();
@@ -204,7 +210,7 @@
       }
     } else if (id === 'saleDel') {
       var ds = S.sales().filter(function (x) { return x.id === saleId; })[0];
-      if (ds && confirm('Delete order ' + ds.n + ' (' + N(ds.net) + ') for good?\nIt is removed from sales and from this shift. If money was given back, use Refund instead.')) {
+      if (ds && await S.ask('It is removed from sales and from this shift. If money was given back, use Refund instead.', 'Delete order', 'Delete order ' + ds.n + ' (' + N(ds.net) + ') for good?')) {
         var g2 = await MBGuard.ask({ title: 'Delete order ' + ds.n, detail: N(ds.net) + ' will be removed completely.' });
         if (!g2.ok) return;
         var lbl = (ds.rno || 'Order ' + ds.n) + ' · ' + N(ds.net);
@@ -275,8 +281,8 @@
   $('detailDel').onclick = async function () {
     if (!shown || !shown.closedAt) return;
     var no = shown.no, n = S.salesOf(no).length;
-    if (!confirm('Delete Shift ' + no + ' and its ' + n + (n === 1 ? ' order' : ' orders') + ' (' + N(shown.net) + ' net) for good?\nExpenses and the money counter are not touched. This cannot be undone.')) return;
-    if (!confirm('Last check: really delete Shift ' + no + '? Download a backup first if you are not sure.')) return;
+    if (!(await S.ask('Expenses and the money counter are not touched. This cannot be undone.', 'Delete shift', 'Delete Shift ' + no + ' and its ' + n + (n === 1 ? ' order' : ' orders') + ' (' + N(shown.net) + ' net) for good?'))) return;
+    if (!(await S.ask('Download a backup first if you are not sure.', 'Delete shift', 'Last check: really delete Shift ' + no + '?'))) return;
     var gd = await MBGuard.ask({ title: 'Delete Shift ' + no, detail: n + (n === 1 ? ' order' : ' orders') + ' and the shift report will be removed.' });
     if (!gd.ok) return;
     MBGuard.log('Delete shift', 'Shift ' + no + ' · ' + n + ' orders · ' + N(shown.net) + ' net', gd.reason);

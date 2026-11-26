@@ -18,49 +18,8 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" href="../../shared/icons/favicon-32.png">
 <link rel="apple-touch-icon" href="../../shared/icons/expenses-apple-touch-icon.png">
+<link rel="stylesheet" href="../../shared/css/app.css">
 <style>
-  :root {
-    --ink: #1f1a17;
-    --muted: #7a7068;
-    --line: #e4dfd7;
-    --soft: #f5f2ec;
-    --teal: #0d3a4e;
-    --brown: #9b7952;
-    --spend: #7d5f3c;
-    --bad: #a4372b;
-  }
-  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-  html, body { margin: 0; height: 100%; }
-  body {
-    font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    color: var(--ink); background: var(--soft); font-size: 16px; line-height: 1.35;
-  }
-  .app {
-    max-width: 480px; margin: 0 auto; height: 100%;
-    display: flex; flex-direction: column; background: #fff;
-    border-left: 1px solid var(--line); border-right: 1px solid var(--line);
-  }
-  .num { font-variant-numeric: tabular-nums; }
-
-  .top {
-    display: flex; align-items: center; gap: 10px;
-    padding: calc(10px + env(safe-area-inset-top)) 12px 10px 16px;
-    border-bottom: 1px solid var(--line);
-  }
-  .top img { width: 32px; height: 32px; }
-  .top b { font-size: 16px; font-weight: 650; }
-  .top span.sub { display: block; font-size: 12px; color: var(--muted); }
-  .apps { margin-left: auto; display: flex; gap: 2px; }
-  .apps a {
-    padding: 8px 10px; font-size: 14px; color: var(--muted); text-decoration: none;
-    border-bottom: 2px solid transparent;
-  }
-  .apps a.on { color: var(--ink); font-weight: 650; border-bottom-color: var(--teal); }
-
-  main { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
-  .view { display: none; }
-  .view.on { display: block; }
-
   .daynav {
     display: flex; align-items: center; justify-content: space-between;
     padding: 10px 8px 10px 16px; border-bottom: 1px solid var(--line);
@@ -68,9 +27,6 @@
   .daynav .when { font-size: 17px; font-weight: 650; cursor: pointer; }
   .daynav .when small { display: block; font-size: 12px; font-weight: 400; color: var(--muted); }
   .arrows { display: flex; gap: 2px; }
-  .icon-btn { width: 44px; height: 44px; border: none; background: none; color: var(--ink); font-size: 24px; cursor: pointer; border-radius: 6px; }
-  .icon-btn:active { background: var(--soft); }
-
   /* form */
   .form { padding: 6px 16px 14px; background: var(--soft); border-bottom: 1px solid var(--line); }
   .form.editing { background: #eef3f5; }
@@ -83,7 +39,6 @@
     -moz-appearance: textfield; appearance: none;
   }
   select.field { text-align-last: right; background: none; }
-  .field:focus { outline: none; border-bottom-color: var(--teal); }
   .field::-webkit-outer-spin-button, .field::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
   .peso-wrap { display: flex; align-items: center; gap: 6px; flex: 1; justify-content: flex-end; }
   .peso-wrap .field { max-width: 150px; font-weight: 650; font-size: 20px; }
@@ -92,11 +47,7 @@
   .seg button + button { border-left: 1.5px solid #c9c1b5; }
   .seg button.on { background: var(--teal); color: #fff; font-weight: 650; }
   .fbtns { display: flex; align-items: center; gap: 14px; padding-top: 10px; }
-  .primary { flex: 1; height: 46px; border: none; border-radius: 6px; background: var(--teal); color: #fff; font: inherit; font-weight: 650; font-size: 16px; cursor: pointer; }
   .primary:active { opacity: .8; }
-  .text-btn { border: none; background: none; font: inherit; font-size: 14px; color: var(--muted); text-decoration: underline; cursor: pointer; padding: 8px 2px; }
-  .text-btn.danger { color: var(--bad); }
-
   /* entries */
   .entry {
     display: flex; align-items: center; gap: 12px; width: 100%; text-align: left;
@@ -113,7 +64,6 @@
   .cashline { margin: 0; padding: 12px 16px; font-size: 13px; color: var(--muted); background: var(--soft); border-top: 1px solid var(--line); }
   .cashline b { color: var(--ink); }
   .cashline a { color: var(--teal); }
-
   /* totals */
   .totals { display: grid; grid-template-columns: 1fr 1fr 1.2fr; border-top: 2px solid var(--ink); background: #fff; }
   .totals div { padding: 8px 12px 9px; border-right: 1px solid var(--line); }
@@ -121,11 +71,7 @@
   .totals small { display: block; font-size: 11px; color: var(--muted); }
   .totals div:last-child small { color: #cfdde4; }
   .totals b { font-size: 17px; font-weight: 700; }
-
   .tabs { display: grid; grid-template-columns: repeat(3, 1fr); border-top: 1px solid var(--line); padding-bottom: env(safe-area-inset-bottom); background: #fff; }
-  .tab { border: none; background: none; font: inherit; font-size: 14px; color: var(--muted); padding: 13px 0 12px; cursor: pointer; border-top: 3px solid transparent; margin-top: -1px; }
-  .tab.on { color: var(--teal); font-weight: 650; border-top-color: var(--teal); }
-
   /* calendar */
   .monthbar { display: flex; align-items: center; justify-content: space-between; padding: 8px 8px 8px 16px; }
   .monthbar h2 { margin: 0; font-size: 18px; font-weight: 650; }
@@ -147,24 +93,18 @@
   .bd { display: flex; justify-content: space-between; padding: 9px 16px; border-top: 1px solid var(--line); font-size: 15px; }
   .bd span:first-child small { color: var(--muted); }
   .hint { padding: 12px 16px 16px; font-size: 13px; color: var(--muted); }
-
   /* more */
   .item { display: block; width: 100%; text-align: left; padding: 14px 16px; border: none; border-bottom: 1px solid var(--line); background: #fff; font: inherit; cursor: pointer; color: var(--ink); }
   .item b { display: block; font-weight: 650; }
   .item span { font-size: 13px; color: var(--muted); }
   .item:active { background: var(--soft); }
-  .sect { padding: 16px 16px 6px; font-weight: 650; }
   .catrow { display: flex; align-items: center; justify-content: space-between; padding: 4px 8px 4px 16px; border-top: 1px solid var(--line); min-height: 46px; }
   .catrow .x { width: 44px; height: 44px; border: none; background: none; color: var(--muted); font-size: 20px; cursor: pointer; }
   .addcat { display: flex; gap: 8px; padding: 10px 16px 14px; border-top: 1px solid var(--line); }
-  .addcat input { flex: 1; min-width: 0; height: 42px; border: 1.5px solid #c9c1b5; border-radius: 6px; padding: 0 10px; font: inherit; background: #fff; color: var(--ink); }
+  .addcat input { flex: 1; min-width: 0; height: 44px; border: 1.5px solid #c9c1b5; border-radius: 6px; padding: 0 10px; font: inherit; background: #fff; color: var(--ink); }
   .addcat input:focus { outline: none; border-color: var(--teal); }
-  .addcat button { height: 42px; padding: 0 16px; border: none; border-radius: 6px; background: var(--teal); color: #fff; font: inherit; font-weight: 650; cursor: pointer; }
-  .note { padding: 14px 16px; font-size: 13px; color: var(--muted); }
-
+  .addcat button { height: 44px; padding: 0 16px; border: none; border-radius: 6px; background: var(--teal); color: #fff; font: inherit; font-weight: 650; cursor: pointer; }
   .toast { position: fixed; left: 50%; bottom: 130px; transform: translateX(-50%); background: var(--ink); color: #fff; padding: 8px 14px; border-radius: 6px; font-size: 13px; opacity: 0; pointer-events: none; transition: opacity .2s; }
-  .toast.on { opacity: 1; }
-  :focus-visible { outline: 2px solid var(--brown); outline-offset: 1px; }
   @media (prefers-reduced-motion: reduce) { .toast { transition: none; } }
 </style>
 <link rel="stylesheet" href="../../shared/css/wide.css">
@@ -173,7 +113,7 @@
 <body class="pg-expenses">
 <div class="app">
   <div class="top">
-    <a href="../home/" aria-label="Home" style="display:flex"><img src="../../shared/icons/logo-64.png" alt=""></a>
+    <a class="logo" href="../home/" aria-label="Home"><img src="../../shared/icons/logo-64.png" alt=""></a>
     <div><b>Marina Bay's Cafe</b><span class="sub">Expenses</span></div>
     <nav class="apps" aria-label="Apps"><a href="../analytics/">Analytics</a><a href="../home/">All apps</a></nav>
   </div>
@@ -192,7 +132,7 @@
       <div class="form" id="form">
         <div class="frow">
           <label for="amt">Amount</label>
-          <div class="peso-wrap"><span>₱</span><input class="field num" id="amt" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0.00"></div>
+          <div class="peso-wrap"><span>₱</span><input autocomplete="off" class="field num" id="amt" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0.00"></div>
         </div>
         <div class="frow">
           <label for="cat">Category</label>
@@ -270,6 +210,7 @@
 
 <script src="../../shared/js/receipt-logo.js"></script>
 <script src="../../shared/js/printer.js"></script>
+<script src="../../shared/js/app-data.js"></script>
 <script>
 (function () {
   var KEY = 'marinabays_expenses_v1';
@@ -293,7 +234,18 @@
     var saved = JSON.parse(localStorage.getItem(KEY));
     if (saved && saved.days) { store = saved; if (!store.cats || !store.cats.length) store.cats = DEFAULT_CATS.slice(); }
   } catch (e) {}
-  function save() { try { localStorage.setItem(KEY, JSON.stringify(store)); } catch (e) { toast('Could not save. Storage may be full.'); } }
+  var gone = {}, goneCats = {};      // deleted in this tab, so the merge below never brings them back
+  // keep what another tab saved that this tab does not have (MBData.mergeById, same as the menu and inventory)
+  function mergeStore() {
+    var st; try { st = JSON.parse(localStorage.getItem(KEY)); } catch (e) { return; }
+    if (!st || !st.days) return;
+    Object.keys(st.days).forEach(function (k) {
+      var mine = store.days[k] || [];
+      if (MBData.mergeById(mine, st.days[k], gone)) { mine.sort(function (a, b) { return (a.t || 0) - (b.t || 0); }); store.days[k] = mine; }
+    });
+    (st.cats || []).forEach(function (c) { if (store.cats.indexOf(c) === -1 && !goneCats[c]) store.cats.push(c); });
+  }
+  function save() { try { mergeStore(); localStorage.setItem(KEY, JSON.stringify(store)); } catch (e) { toast('Could not save. Storage may be full.'); } }
   function dayList(k) { return store.days[k] || []; }
   function sumOf(list, src) { var t = 0; list.forEach(function (x) { if (!src || x.src === src) t += x.amt; }); return t; }
 
@@ -322,6 +274,7 @@
   }
   $('src').addEventListener('click', function (e) { var b = e.target.closest('button'); if (b) setSrc(b.getAttribute('data-s')); });
   $('cat').addEventListener('change', function () {
+    if ($('cat').value !== '__new') { store.lastCat = $('cat').value; save(); return; }      // remember the last category
     if ($('cat').value === '__new') {
       var name = (prompt('New category name') || '').trim();
       if (name) { if (store.cats.indexOf(name) === -1) store.cats.push(name); store.lastCat = name; save(); }
@@ -365,6 +318,7 @@
   $('cancel').onclick = resetForm;
   $('del').onclick = function () {
     if (!confirm('Delete this expense?')) return;
+    gone[editingId] = 1;
     store.days[selected] = dayList(selected).filter(function (e) { return e.id !== editingId; });
     if (!store.days[selected].length) delete store.days[selected];
     save(); resetForm(); paintDay(); toast('Deleted');
@@ -454,7 +408,7 @@
     if (store.cats.length <= 1) { toast('Keep at least one category'); return; }
     var name = store.cats[+b.getAttribute('data-i')];
     if (confirm('Remove "' + name + '"? Past expenses keep this name.')) {
-      store.cats.splice(+b.getAttribute('data-i'), 1);
+      goneCats[name] = 1; store.cats.splice(+b.getAttribute('data-i'), 1);
       if (store.lastCat === name) store.lastCat = '';
       save(); paintCats(); fillCats(store.lastCat);
     }
@@ -492,7 +446,7 @@
         if (!data || typeof data.days !== 'object') throw 0;
         var n = Object.keys(data.days).length;
         if (confirm('Load ' + n + ' days from this backup? Days with the same date will be replaced.')) {
-          Object.keys(data.days).forEach(function (k) { if (/^\d{4}-\d{2}-\d{2}$/.test(k) && Array.isArray(data.days[k])) store.days[k] = data.days[k]; });
+          Object.keys(data.days).forEach(function (k) { if (/^\d{4}-\d{2}-\d{2}$/.test(k) && Array.isArray(data.days[k])) { dayList(k).forEach(function (x) { gone[x.id] = 1; }); store.days[k] = data.days[k]; } });
           (data.cats || []).forEach(function (c) { if (store.cats.indexOf(c) === -1) store.cats.push(c); });
           save(); paintCats(); fillCats(store.lastCat); paintDay(); toast('Backup loaded');
         }

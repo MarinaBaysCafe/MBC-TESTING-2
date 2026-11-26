@@ -3,7 +3,7 @@
 var fs = require('fs'), path = require('path');
 var store = {}, failKey = null;
 global.localStorage = { getItem: function (k) { return k in store ? store[k] : null; }, setItem: function (k, v) { if (k === failKey) throw new Error('QuotaExceededError'); store[k] = String(v); }, removeItem: function (k) { delete store[k]; } };
-global.sessionStorage = global.localStorage; global.window = global; global.navigator = {};
+global.sessionStorage = global.localStorage; global.window = global; global.navigator = {}; global.addEventListener = function () {};
 global.document = { addEventListener: function () {}, getElementById: function () { return null; }, createElement: function () { return { style: {} }; }, body: {}, readyState: 'complete' };
 function boot(pre) {
   store = {}; failKey = null; delete global.MBCloud;
@@ -84,6 +84,34 @@ test('an order with no line discount prints the same as before', function () {
   var S = boot(); S.start(500, 'Ana'); var s = sell(S), r = rec(); S.saleReceipt(r.p, s);
   eq(r.out.filter(function (x) { return /Discount/.test(x); }), []);
   eq(s.lines[0].disc, undefined);
+});
+
+/* stock: cups and lids come off when an order is saved (stockOut), refund(id, returnStock) decides if they go back */
+function stockOf(S, name) { return global.MBData.getInventory().items.filter(function (i) { return i.name === name; })[0]; }
+function setStock(name, qty) { var it = global.MBData.getInventory().items.filter(function (i) { return i.name === name; })[0]; it.qty = qty; it.updated = '2026-01-01'; global.MBData.saveInventory(); return it; }
+test('deductInventory is gone: stock comes off when the order is saved', function () {
+  var S = boot(); S.start(500, 'Ana'); eq(typeof S.deductInventory, 'undefined');
+  setStock('16oz dabba', 5); setStock('Flat lids', 5); sell(S);
+  eq([stockOf(S, '16oz dabba').qty, stockOf(S, 'Flat lids').qty], [4, 4]);
+});
+test('refund(id) keeps the stock used (the drink was made); refund(id, true) puts the cup and lid back', function () {
+  var S = boot(); S.start(500, 'Ana'); setStock('16oz dabba', 5); setStock('Flat lids', 5);
+  var a = sell(S), b = sell(S); eq(stockOf(S, '16oz dabba').qty, 3);
+  eq(S.refund(a.id), true); eq(stockOf(S, '16oz dabba').qty, 3);
+  eq(S.refund(b.id, true), true); eq([stockOf(S, '16oz dabba').qty, stockOf(S, 'Flat lids').qty], [4, 4]);
+  eq(S.refund(a.id, true), false);      // already refunded: nothing happens, nothing is put back
+  eq(stockOf(S, '16oz dabba').qty, 4);
+});
+test('selling more than is in stock saves the order and records the shortage', function () {
+  var S = boot(); S.start(500, 'Ana'); setStock('16oz dabba', 1); setStock('Flat lids', 5);
+  sell(S); var s2 = sell(S);
+  if (!s2) throw new Error('the order was refused');
+  eq(s2.short, { '16oz dabba': 1 });
+  eq(S.shortages(), [{ name: '16oz dabba', missing: 1 }]);
+});
+test('a cup that was never counted is not taken off and not reported as short', function () {
+  var S = boot(); S.start(500, 'Ana'); var it = stockOf(S, '16oz dabba'); it.qty = 0; it.updated = ''; global.MBData.saveInventory();
+  var s = sell(S); eq(s.short, undefined); eq(s.unc.indexOf('16oz dabba') >= 0, true); eq(stockOf(S, '16oz dabba').qty, 0);
 });
 
 var fail = 0;

@@ -14,6 +14,17 @@
     n = Number(n);
     return '₱' + n.toLocaleString('en-PH', { minimumFractionDigits: n % 1 ? 2 : 0, maximumFractionDigits: 2 });
   }
+  /* Stale-tab merge (same idea as shift-lib): before a save, keep the entries another tab saved that this tab does not have.
+     Entries deleted in this tab are marked with markGone(id) so the merge never brings them back. */
+  var gone = {};
+  function markGone(id) { if (id) gone[id] = 1; }
+  function mergeById(mine, theirs, skip) {
+    var have = {}, added = false; skip = skip || gone;
+    (mine || []).forEach(function (x) { have[x.id] = 1; });
+    (theirs || []).forEach(function (x) { if (x && x.id && !have[x.id] && !skip[x.id]) { mine.push(x); have[x.id] = 1; added = true; } });
+    return added;
+  }
+  function stored(key) { try { return JSON.parse(localStorage.getItem(key)); } catch (e) { return null; } }
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
 
   /* ---------- menu ---------- */
@@ -30,9 +41,14 @@
     return defaultMenu();
   }
   var menu = loadMenu();
-  function saveMenu() { try { localStorage.setItem(MENU_KEY, JSON.stringify(menu)); return true; } catch (e) { return false; } }
-  function resetMenu() { menu = defaultMenu(); saveMenu(); return menu; }
-  function setMenu(m) { menu = m; menu.addonGroups = menu.addonGroups || []; return saveMenu(); }
+  function writeMenu() { try { localStorage.setItem(MENU_KEY, JSON.stringify(menu)); return true; } catch (e) { return false; } }
+  function saveMenu() {
+    var st = stored(MENU_KEY);
+    if (st) { mergeById(menu.categories, st.categories); mergeById(menu.items, st.items); mergeById(menu.addonGroups, st.addonGroups); }
+    return writeMenu();
+  }
+  function resetMenu() { menu = defaultMenu(); writeMenu(); return menu; }
+  function setMenu(m) { menu = m; menu.addonGroups = menu.addonGroups || []; return writeMenu(); }
   function getMenu() { return menu; }
 
   function cat(id) { return menu.categories.filter(function (c) { return c.id === id; })[0] || null; }
@@ -94,12 +110,13 @@
     return defaultInventory();
   }
   var inventory = loadInventory();
-  function saveInventory() { try { localStorage.setItem(INV_KEY, JSON.stringify(inventory)); return true; } catch (e) { return false; } }
+  function writeInventory() { try { localStorage.setItem(INV_KEY, JSON.stringify(inventory)); return true; } catch (e) { return false; } }
+  function saveInventory() { var st = stored(INV_KEY); if (st) mergeById(inventory.items, st.items); return writeInventory(); }
   function getInventory() { return inventory; }
   // re-read from storage into the same object (other code may hold a reference to it)
   function reloadInventory() { var f = loadInventory(); Object.keys(inventory).forEach(function (k) { delete inventory[k]; }); Object.keys(f).forEach(function (k) { inventory[k] = f[k]; }); return inventory; }
-  function setInventory(v) { inventory = v; return saveInventory(); }
-  function resetInventory() { inventory = defaultInventory(); saveInventory(); return inventory; }
+  function setInventory(v) { inventory = v; return writeInventory(); }
+  function resetInventory() { inventory = defaultInventory(); writeInventory(); return inventory; }
 
   /* ---------- files ---------- */
   function download(name, text, type) {
@@ -118,7 +135,7 @@
   }
 
   window.MBData = {
-    uid: uid, clone: clone, peso: peso, pesoShort: pesoShort, esc: esc, download: download, todayPH: todayPH, toast: toast,
+    uid: uid, clone: clone, markGone: markGone, mergeById: mergeById, peso: peso, pesoShort: pesoShort, esc: esc, download: download, todayPH: todayPH, toast: toast,
     getMenu: getMenu, setMenu: setMenu, saveMenu: saveMenu, resetMenu: resetMenu, defaultMenu: defaultMenu,
     cat: cat, item: item, itemsIn: itemsIn, addonsFor: addonsFor, priceText: priceText, plainOption: plainOption,
     reloadInventory: reloadInventory, getInventory: getInventory, setInventory: setInventory, saveInventory: saveInventory, resetInventory: resetInventory,

@@ -30,7 +30,7 @@
 <body class="pg-narrow">
 <div class="app">
   <div class="top">
-    <a href="../home/" aria-label="Home" style="display:flex"><img src="../../shared/icons/logo-64.png" alt=""></a>
+    <a class="logo" href="../home/" aria-label="Home"><img src="../../shared/icons/logo-64.png" alt=""></a>
     <div><b>Marina Bay's Cafe</b><span class="sub">Sync</span></div>
     <nav class="apps" aria-label="Apps"><a href="../home/">All apps</a></nav>
   </div>
@@ -84,7 +84,7 @@
     if (on) {
       var p = C.pending(), h = '';
       C.names.forEach(function (n) {
-        h += '<div class="prow" style="cursor:default"><div class="what"><b>' + LABEL[n] + '</b></div><div class="r">' +
+        h += '<div class="prow static"><div class="what"><b>' + LABEL[n] + '</b></div><div class="r">' +
           (p[n] ? p[n] + ' waiting to upload' : 'All saved') + '</div></div>';
       });
       $('list').innerHTML = h;

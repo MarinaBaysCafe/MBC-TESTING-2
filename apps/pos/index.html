@@ -28,11 +28,11 @@
   .line .l3 { display: flex; align-items: center; justify-content: space-between; margin-top: 8px; }
   .totalrow { display: flex; justify-content: space-between; align-items: baseline; padding: 14px 16px; font-size: 18px; font-weight: 700; border-bottom: 1px solid var(--line); }
   .seg2 { display: flex; border: 1.5px solid #c9c1b5; border-radius: 6px; overflow: hidden; }
-  .seg2 button { border: none; background: #fff; font: inherit; font-size: 15px; padding: 8px 16px; color: var(--ink); cursor: pointer; }
+  .seg2 button { border: none; background: #fff; font: inherit; font-size: 15px; padding: 8px 16px; min-height: 44px; color: var(--ink); cursor: pointer; }
   .seg2 button + button { border-left: 1.5px solid #c9c1b5; }
   .seg2 button.on { background: var(--teal); color: #fff; font-weight: 650; }
   .quick { display: flex; gap: 6px; flex-wrap: wrap; padding: 8px 16px 12px; border-bottom: 1px solid var(--line); }
-  .quick button { border: 1.5px solid #c9c1b5; background: #fff; border-radius: 6px; font: inherit; font-size: 14px; padding: 7px 12px; cursor: pointer; color: var(--ink); }
+  .quick button { border: 1.5px solid #c9c1b5; background: #fff; border-radius: 6px; font: inherit; font-size: 14px; padding: 7px 12px; min-height: 44px; cursor: pointer; color: var(--ink); }
   .big { font-size: 30px; font-weight: 700; text-align: center; padding: 18px 16px 4px; }
   .bigsub { text-align: center; color: var(--muted); padding: 0 16px 16px; }
   .swrow { position: relative; overflow: hidden; touch-action: pan-y; }
@@ -49,15 +49,14 @@
   .undo button { min-height: 44px; padding: 0 14px; background: transparent; border: 0; color: #9fe3d6; font: inherit; font-weight: 700; cursor: pointer; }
   @media (prefers-reduced-motion: reduce) { .sw-in { transition: none; } }
   s.was { color: var(--muted); font-weight: 400; font-size: .85em; margin-right: 4px; }
-  .help2 { padding: 12px 16px; font-size: 13px; color: var(--muted); border-bottom: 1px solid var(--line); }
-  .note-in { width: 100%; height: 42px; border: 1.5px solid #c9c1b5; border-radius: 6px; padding: 0 10px; font: inherit; }
+  .note-in { width: 100%; height: 44px; border: 1.5px solid #c9c1b5; border-radius: 6px; padding: 0 10px; font: inherit; }
   .note-in:focus { outline: none; border-color: var(--teal); }
   .searchbar { display: flex; gap: 8px; }
   .searchbar input { flex: 1; width: auto; min-width: 0; }
-  .ordbtn { flex: none; height: 40px; padding: 0 14px; border: 1.5px solid var(--teal); border-radius: 10px; background: #fff; color: var(--teal); font: inherit; font-weight: 650; font-size: 14px; cursor: pointer; white-space: nowrap; }
+  .ordbtn { flex: none; height: 44px; padding: 0 14px; border: 1.5px solid var(--teal); border-radius: 10px; background: #fff; color: var(--teal); font: inherit; font-weight: 650; font-size: 14px; cursor: pointer; white-space: nowrap; }
   .ordbtn:active { background: var(--soft); }
   .catbar { padding: 8px 16px 10px; border-bottom: 1px solid var(--line); }
-  .catsel { width: 100%; height: 42px; border: 1.5px solid #c9c1b5; border-radius: 6px; padding: 0 10px; font: inherit; font-size: 15px; background: #fff; color: var(--ink); }
+  .catsel { width: 100%; height: 44px; border: 1.5px solid #c9c1b5; border-radius: 6px; padding: 0 10px; font: inherit; font-size: 15px; background: #fff; color: var(--ink); }
   .catsel:focus { outline: none; border-color: var(--teal); }
   .otype { padding: 10px 16px; border-bottom: 1px solid var(--line); }
   .otype .seg2 button { flex: 1; }
@@ -68,7 +67,7 @@
 <body class="pg-pos">
 <div class="app">
   <div class="top">
-    <a href="../home/" aria-label="Home" style="display:flex"><img src="../../shared/icons/logo-64.png" alt=""></a>
+    <a class="logo" href="../home/" aria-label="Home"><img src="../../shared/icons/logo-64.png" alt=""></a>
     <div><b>Marina Bay's Cafe</b><span class="sub">Point of sale</span></div>
     <nav class="apps" aria-label="Apps"><a href="../shift/">Shift</a><a href="../menu/">Menu</a><a href="../home/">All apps</a></nav>
   </div>
@@ -99,6 +98,7 @@
 <script src="../../shared/js/guard.js"></script>
 <script src="../../shared/js/pos-config.js"></script>
 <script src="barcodes.js"></script>
+<script src="charge.js"></script>
 <script>
 (function () {
   var D = window.MBData, esc = D.esc, $ = function (id) { return document.getElementById(id); };
@@ -117,7 +117,7 @@
   var CUST_KEY = 'marinabays_cust_v1', cust = '';
   try { cust = localStorage.getItem(CUST_KEY) || ''; } catch (e) { cust = ''; }
   function setCust(v) { cust = String(v || '').slice(0, 40); try { if (cust) localStorage.setItem(CUST_KEY, cust); else localStorage.removeItem(CUST_KEY); } catch (e) {} }
-  document.addEventListener('input', function (e) {      // the customer name box (in the order and in the Charge sheet) stays the same in both
+  document.addEventListener('input', function (e) {      // the customer name box (in the order panel)
     if (!e.target.hasAttribute || !e.target.hasAttribute('data-cust')) return;
     setCust(e.target.value);
     var all = document.querySelectorAll('[data-cust]'), i;
@@ -321,7 +321,10 @@
 
   /* ---------- sheet ---------- */
   var mode = '', sel = null;
-  function openSheet() { $('shade').classList.add('on'); }
+  function openSheet() {
+    $('shade').classList.add('on');
+    if (mode === 'hold' || mode === 'ld' || mode === 'start') { var f = $('sheet').querySelector('input:not([type=checkbox]):not([type=radio])'); if (f) setTimeout(function () { f.focus(); }, 30); }
+  }
   function closeSheet() { $('shade').classList.remove('on'); mode = ''; sel = null; swOpenRow = null; }
   $('shade').addEventListener('click', function (e) { if (e.target === $('shade')) closeSheet(); });
 
@@ -609,7 +612,11 @@
       var r = e.target.closest('button[data-hid]'); if (r) resumeHeld(r.getAttribute('data-hid'));
     }
   });
-  $('sheet').addEventListener('keydown', function (e) { if (mode === 'hold' && e.key === 'Enter' && e.target.id === 'holdName') { e.preventDefault(); $('holdSave').click(); } });
+  $('sheet').addEventListener('keydown', function (e) {
+    if (e.key !== 'Enter') return;
+    if (mode === 'hold' && e.target.id === 'holdName') { e.preventDefault(); $('holdSave').click(); }
+    else if (mode === 'ld' && e.target.tagName === 'INPUT') { e.preventDefault(); $('ldApply').click(); }
+  });
   paintHeld();
 
   /* ---------- discount on one item in the order ---------- */
@@ -625,7 +632,7 @@
     var h = '<div class="sh-head"><div class="t"><b>Discount</b><span>' + esc(l.name) + (l.opt ? ' (' + esc(l.opt) + ')' : '') + ' · ' + D.pesoShort(lineTotal(l)) + '</span></div><button class="icon-btn" data-close aria-label="Close">&times;</button></div><div class="sh-body">';
     h += '<div class="sect">Quick discounts</div><div class="quick">' + cfg.discounts.map(function (p) { return '<button data-ldp="' + esc(p.id) + '">' + esc(p.name) + ' ' + p.pct + '%</button>'; }).join('') + '</div>';
     h += '<div class="sect">Other amount</div><div class="frow"><div class="seg2"><button data-ldk="pct" class="' + (ldS.kind === 'pct' ? 'on' : '') + '">%</button><button data-ldk="fixed" class="' + (ldS.kind === 'fixed' ? 'on' : '') + '">₱</button></div>' +
-      '<input class="field num" id="ldVal" style="max-width:110px" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0" value="' + esc(ldS.value) + '"></div>';
+      '<input autocomplete="off" class="field num" id="ldVal" style="max-width:110px" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0" value="' + esc(ldS.value) + '"></div>';
     h += '<div class="block"><label for="ldWhy">Reason (optional)</label><input class="note-in" id="ldWhy" type="text" maxlength="60" placeholder="For example, loyal customer" value="' + esc(ldS.reason) + '" autocomplete="off"></div>';
     h += '<div class="totalrow"><span>Discount</span><span class="num" id="ldAmt"></span></div><div class="totalrow"><span>This item after discount</span><span class="num" id="ldNew"></span></div>';
     h += '</div><div class="sh-foot">' + (l.ld ? '<button class="text-btn danger" id="ldRemove">Remove</button>' : '<button class="text-btn" id="ldBack">Back</button>') + '<button class="primary" id="ldApply">Apply</button></div>';
@@ -659,224 +666,19 @@
     }
   });
 
-  /* ---------- charge ---------- */
-  var S = window.MBShift, pay = null, lastSale = null;
+  /* ---------- charge (the Charge sheet is in charge.js) ---------- */
+  var S = window.MBShift;
   function money(n) { return D.peso(n); }
   function CFG() { return window.MBConfig.get(); }
-  function isIdDisc(id) { return id === 'pwd' || id === 'senior'; }
-  /* VAT-registered: PWD and Senior come off the VAT-free price (MBMoney.exemptDiscount), one per item (they never stack).
-     Returns the other presets, the discount and the VAT taken off (centavos), what is due on the exempt items, and the records to save. */
-  function vatExempt(cfg, presets) {
-    var out = { presets: presets, discC: 0, vatC: 0, dueC: 0, recs: [] };
-    if (!cfg.vatRegistered) return out;
-    var rate = Number(cfg.vatPct) || 12, seen = {};
-    out.presets = [];
-    presets.forEach(function (p) {
-      if (!isIdDisc(p.id)) { out.presets.push(p); return; }
-      var idx = p.scope === 'all' ? cart.map(function (l, i) { return i; }) : [p.scope], dc = 0;
-      idx.forEach(function (i) {
-        if (seen[i] || !cart[i]) return; seen[i] = 1;
-        var remC = MM.toC(lineTotal(cart[i])) - lineDiscC(cart[i]); if (remC <= 0) return;
-        var x = MM.exemptDiscount(remC, { vatRegistered: true, discPct: p.pct, vatPct: rate });
-        dc += x.discount; out.vatC += x.vatRemoved; out.dueC += x.due;
-      });
-      out.discC += dc;
-      if (dc > 0) out.recs.push({ id: p.id, name: p.name, pct: p.pct, item: p.scope === 'all' ? '' : cart[p.scope].name, amt: MM.fromC(dc), kind: 'preset' });
-    });
-    if (out.vatC > 0) out.recs.push({ id: 'vatx', name: 'VAT exempt', pct: 0, item: '', amt: MM.fromC(out.vatC), kind: 'vatx' });
-    return out;
-  }
-  function payNums() {
-    var cfg = CFG(), gross = S.r2(cartTotal()), presets = [];
-    Object.keys(pay.dsel).forEach(function (id) {
-      var pr = cfg.discounts.filter(function (x) { return x.id === id; })[0], sc = pay.dsel[id]; if (!pr) return;
-      presets.push({ id: id, name: pr.name, pct: pr.pct, scope: (sc === 'all' || !cart[sc]) ? 'all' : +sc });
-    });
-    var ex = vatExempt(cfg, presets); presets = ex.presets;
-    var v = parseFloat(pay.disc) || 0;
-    // line discounts first, then the toggles and the "Other discount" on what is left (see MBMoney.orderDiscount)
-    var od = MM.orderDiscount({ lines: cart.map(function (l) { return { totalC: MM.toC(lineTotal(l)), ld: l.ld || null }; }), presets: presets,
-      manual: v > 0 ? { kind: pay.dt === 'pct' ? 'pct' : 'peso', value: v } : null, rules: { stack: !(cfg.discRules && cfg.discRules.stack === false) } });
-    var dC = Math.min(MM.toC(gross), od.totalC + ex.discC + ex.vatC), d = MM.fromC(dC), lineDisc = od.lineC.map(MM.fromC);
-    var recs = od.recs.map(function (r) { return { id: r.id, name: r.name, pct: r.pct, item: (typeof r.line === 'number' && cart[r.line]) ? cart[r.line].name : '', amt: MM.fromC(r.amtC), kind: r.kind }; });
-    recs = recs.concat(ex.recs);
-    var vat = null;
-    if (cfg.vatRegistered) {
-      var vr = Number(cfg.vatPct) || 12, vi = MM.vatSplit(Math.max(0, MM.toC(gross) - dC - ex.dueC), vr);
-      vat = { pct: vr, sales: MM.fromC(vi.net), amt: MM.fromC(vi.vat), exempt: MM.fromC(ex.dueC) };
-    }
-    var net = S.r2(gross - d), nonCash = 0, cashIn = null;
-    cfg.methods.forEach(function (m) {
-      var raw = pay.amt[m.id], a = parseFloat(raw) || 0;
-      if (m.id === 'cash') cashIn = (raw === undefined || raw === '') ? null : a; else nonCash += a;
-    });
-    nonCash = S.r2(nonCash);
-    var cashDue = S.r2(Math.max(0, net - nonCash)), tend = cashIn === null ? cashDue : cashIn;
-    return { gross: gross, d: d, net: net, vat: vat, recs: recs, lineDisc: lineDisc, nonCash: nonCash, cashDue: cashDue, tend: tend, change: S.r2(tend - cashDue), over: nonCash > net + 0.004 };
-  }
-  function openCharge() {
-    if (!cart.length) return;
-    if (!S.current()) { openStart(); return; }
-    pay = { dt: 'peso', disc: '', dsel: {}, amt: {}, ids: {}, ref: {} };
-    mode = 'pay'; renderPay(); openSheet();
-  }
-  function renderPay() {
-    var cfg = CFG(), n = payNums(), cur = S.current();
-    var h = '<div class="sh-head"><div class="t"><b>Charge</b><span>Shift ' + cur.no + ' · ' + cartCount() + (cartCount() === 1 ? ' item' : ' items') + ' · ' + S.typeText(orderType) +
-      '</span></div><button class="icon-btn" data-close aria-label="Close">&times;</button></div><div class="sh-body">';
-    h += '<div class="totalrow"><span>Total</span><span class="num">' + money(n.gross) + '</span></div>';
-    h += '<div class="frow"><label for="payCust">Customer name</label><input class="field" id="payCust" data-cust type="text" maxlength="40" placeholder="Optional" value="' + esc(cust) + '" autocomplete="off"></div>';
-    cfg.discounts.forEach(function (pr) {
-      var on = pay.dsel[pr.id] !== undefined;
-      h += '<label class="check"><input type="checkbox" data-dp="' + esc(pr.id) + '"' + (on ? ' checked' : '') + '> ' + esc(pr.name) + ' ' + pr.pct + '%</label>';
-      if (on) {
-        h += '<div class="frow"><label>Apply ' + esc(pr.name) + ' to</label><select class="field" data-ds="' + esc(pr.id) + '"><option value="all">Whole order</option>' +
-          cart.map(function (l, i) { return '<option value="' + i + '"' + (String(pay.dsel[pr.id]) === String(i) ? ' selected' : '') + '>' + esc(l.name) + (l.opt ? ' (' + esc(l.opt) + ')' : '') + '</option>'; }).join('') + '</select></div>';
-        if (isIdDisc(pr.id)) {
-          var ix = pay.ids[pr.id] || {};
-          h += '<div class="frow"><label>' + esc(pr.name) + ' name</label><input class="field" data-idn="' + esc(pr.id) + '" type="text" maxlength="60" placeholder="Name on the ID" value="' + esc(ix.name || '') + '" autocomplete="off"></div>' +
-            '<div class="frow"><label>' + esc(pr.name) + ' ID number</label><input class="field" data-idi="' + esc(pr.id) + '" type="text" maxlength="40" placeholder="ID number" value="' + esc(ix.id || '') + '" autocomplete="off"></div>';
-        }
-      }
-    });
-    h += '<div class="help2" id="stackNote" style="display:none">Several discounts on the same part: only the biggest counts. To add them up, allow it in Settings.</div>';
-    h += '<div class="frow"><label for="payDisc">Other discount</label><div class="seg2"><button data-dt="peso" class="' + (pay.dt === 'peso' ? 'on' : '') + '">₱</button>' +
-      '<button data-dt="pct" class="' + (pay.dt === 'pct' ? 'on' : '') + '">%</button></div>' +
-      '<input class="field num" id="payDisc" style="max-width:110px" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0" value="' + esc(pay.disc) + '"></div>';
-    h += '<div class="totalrow"><span>Discount</span><span class="num" id="payDiscAmt"></span></div>';
-    h += '<div class="totalrow"><span>To pay</span><span class="num" id="payNet"></span></div>';
-    h += '<div class="help2">Split the payment: fill in an amount for each method. Cash can be left blank to cover the rest.</div>';
-    cfg.methods.forEach(function (m) {
-      var cash = m.id === 'cash';
-      h += '<div class="frow"><label for="pm-' + esc(m.id) + '">' + esc(m.name) + (cash ? ' received' : '') + '</label>' +
-        '<input class="field num" id="pm-' + esc(m.id) + '" data-pm="' + esc(m.id) + '" type="number" inputmode="decimal" min="0" step="0.01" placeholder="' + (cash ? 'Rest' : '0') + '" value="' + esc(pay.amt[m.id] === undefined ? '' : pay.amt[m.id]) + '">' +
-        (cash ? '' : '<button class="text-btn" data-rest="' + esc(m.id) + '">Rest</button>') + '</div>';
-      if (!cash) h += '<div class="frow"><label for="pr-' + esc(m.id) + '">' + esc(m.name) + ' reference no.</label><input class="field" id="pr-' + esc(m.id) + '" data-pr="' + esc(m.id) + '" type="text" maxlength="40" placeholder="Optional" value="' + esc(pay.ref[m.id] || '') + '" autocomplete="off"></div>';
-    });
-    h += '<div class="quick"><button data-qc="exact">Exact</button><button data-qc="100">100</button><button data-qc="200">200</button><button data-qc="500">500</button><button data-qc="1000">1,000</button></div>';
-    h += '<div class="totalrow"><span id="chgLabel">Change</span><span class="num" id="payChange"></span></div>';
-    h += '</div><div class="sh-foot"><button class="text-btn" data-close>Cancel</button><button class="primary" id="payGo"></button></div>';
-    $('sheet').innerHTML = h; refreshPay();
-  }
-  function refreshPay() {
-    var n = payNums(), sn = $('stackNote');
-    if (sn) {          // stacking is switched off in Settings and two toggles cover the same part
-      var grp = {}, many = false, off = !!(CFG().discRules && CFG().discRules.stack === false);
-      Object.keys(pay.dsel).forEach(function (id) { var sc = pay.dsel[id], key = (sc === 'all' || !cart[sc]) ? 'all' : String(sc); grp[key] = (grp[key] || 0) + 1; if (grp[key] > 1) many = true; });
-      sn.style.display = many && off ? '' : 'none';
-    }
-    $('payNet').textContent = money(n.net); $('payDiscAmt').textContent = n.d ? '-' + money(n.d) : '₱0.00';
-    $('payGo').textContent = 'Complete sale · ' + D.pesoShort(n.net);
-    var short = n.tend < n.cashDue;
-    $('chgLabel').textContent = n.over ? 'Over by' : short ? 'Still needed' : 'Change';
-    $('payChange').textContent = money(n.over ? n.nonCash - n.net : Math.abs(n.change));
-    $('payChange').style.color = (short || n.over) ? 'var(--bad)' : '';
-  }
-  function payText(s) {
-    var parts = [];
-    if (s.pays && s.pays.length) s.pays.forEach(function (x) { parts.push(x.name + ' ' + money(x.amt)); });
-    else if (s.pay === 'ewallet') parts.push('E-wallet');
-    var c = S.cashOf(s);
-    if (c > 0 || !parts.length) parts.unshift('Cash ' + money(s.tend) + (s.change ? ' (change ' + money(s.change) + ')' : ''));
-    return parts.join(' + ');
-  }
-  var charging = false;
-  async function completeSale() {
-    if (charging) return;
-    var cfg = CFG(), n = payNums();
-    if (n.over) { D.toast('Non-cash amounts are more than the total'); return; }
-    if (n.tend < n.cashDue) { D.toast('Cash received is less than the amount due'); return; }
-    var ids = [], idMiss = false;
-    Object.keys(pay.dsel).forEach(function (id) {
-      if (!isIdDisc(id)) return;
-      var x = pay.ids[id] || {}, nm = String(x.name || '').trim(), no = String(x.id || '').trim();
-      if (!nm || !no) idMiss = true; else ids.push({ type: id, name: nm, id: no });
-    });
-    if (idMiss) { D.toast('Enter the name and ID number for the PWD or Senior discount'); return; }
-    charging = true;
-    try {
-      var manual = n.recs.some(function (r) { return r.id === 'manual'; }), why = '';
-      if (manual) {
-        var g = await MBGuard.ask({ title: 'Manual discount', detail: 'This order has an "Other discount". Total discount ' + money(n.d) + '.' });
-        if (!g.ok) return;
-        why = g.reason;
-      }
-      var splits = cfg.methods.map(function (m) {
-        return { id: m.id, name: m.name, cash: m.id === 'cash', amt: m.id === 'cash' ? n.tend : (parseFloat(pay.amt[m.id]) || 0), ref: m.id === 'cash' ? '' : String(pay.ref[m.id] || '').trim() };
-      });
-      var sale = S.makeSale(cart, { disc: n.d, discs: n.recs, lineDisc: n.lineDisc, splits: splits, type: orderType, cust: cust, ids: ids, vat: n.vat });
-      if (fixing) sale.fix = fixing.id;
-      if (removed.length) sale.removed = removed.slice(0, 30);     // items taken out of the order before it was paid
-      if (!S.addSale(sale)) { D.toast('Could not save the sale. Storage may be full.'); return; }
-      if (manual) MBGuard.log('Manual discount', (sale.rno || 'Order ' + sale.n) + ' · discount ' + money(n.d) + ' of ' + money(n.gross), why);
-      sale.lines.forEach(function (l) { if (l.disc && !l.di) MBGuard.log('Manual discount', (sale.rno || 'Order ' + sale.n) + ' · ' + l.name + ' · -' + money(l.disc), l.dr || ''); });
-      if (fixing) { S.refund(fixing.id, true); fixing = null; }
-      lastSale = sale; setCust(''); cart = []; removed = []; saveRemoved(); setType('dine'); saveCart(); paintBar(); paintOrdBtn();
-      mode = 'done'; renderDone();
-      var cash = S.cashOf(sale) > 0;
-      if (cfg.autoPrint) {
-        MBPrinter.print('pos', function (p) { S.saleReceipt(p, sale); }, { sale: true, cash: cash }).then(function (m) { if (m) D.toast(m); }).catch(function () {});
-      }
-      // drawer printers that are not printing this receipt still open the drawer
-      if (MBPrinter.hasDrawer()) MBPrinter.openDrawer({ cash: cash, skipReceiptPrinters: cfg.autoPrint }).then(function (m) { if (m) D.toast(m); }).catch(function () {});
-    } finally { charging = false; }
-  }
-  function renderDone() {
-    var s = lastSale;
-    var h = '<div class="sh-head"><div class="t"><b>Sale saved</b><span>Order ' + s.n + ' · Shift ' + s.shift + ' · ' + S.typeText(s.type) + '</span></div><button class="icon-btn" data-close aria-label="Close">&times;</button></div><div class="sh-body">' +
-      '<div class="big num">' + money(s.net) + '</div><div class="bigsub">' + esc(payText(s)) + (s.disc ? ' · Discount ' + money(s.disc) : '') + '</div></div>' +
-      '<div class="sh-foot"><button class="secondary" id="printSale">Print again</button><button class="primary" data-close>New order</button></div>';
-    $('sheet').innerHTML = h;
-  }
-  async function printSale(btn) {
-    var old = btn.textContent; btn.disabled = true; btn.textContent = 'Printing...';
-    try { var m = await MBPrinter.print('pos', function (p) { S.saleReceipt(p, lastSale); }); if (m) D.toast(m); }
-    finally { btn.disabled = false; btn.textContent = old; }
-  }
-  function openStart() {
-    mode = 'start';
-    var last = S.lastStart();
-    $('sheet').innerHTML = '<div class="sh-head"><div class="t"><b>Start a shift</b><span>Needed before a sale can be saved</span></div><button class="icon-btn" data-close aria-label="Close">&times;</button></div><div class="sh-body">' +
-      '<div class="help2">Sales, cash, and expenses are totaled for each shift. The starting cash is the same as last time. Change it only if the drawer starts with a different amount. Cash sales are the extra cash on top of it.</div>' +
-      '<div class="frow"><label for="stCash">Starting cash</label><input class="field num" id="stCash" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0.00" value="' + esc(last) + '"></div>' +
-      '<div class="frow"><label for="stBy">Opened by</label><input class="field" id="stBy" type="text" maxlength="30" placeholder="Name" value="' + esc(S.lastUser()) + '" autocomplete="off"></div>' +
-      '</div><div class="sh-foot"><button class="text-btn" data-close>Cancel</button><button class="primary" id="startGo">Start shift and charge</button></div>';
-    openSheet();
-  }
-  function doStart() {
-    var v = $('stCash').value.trim();
-    if (v === '' || isNaN(parseFloat(v)) || parseFloat(v) < 0) { D.toast('Enter the starting cash'); $('stCash').focus(); return; }
-    var w = S.syncWarning('start'); if (w && !confirm(w)) return;
-    S.start(parseFloat(v), $('stBy').value);
-    openCharge();
-  }
-  $('sheet').addEventListener('click', function (e) {
-    var t = e.target;
-    if (mode === 'pay') {
-      var dt = t.closest('button[data-dt]'); if (dt) { pay.dt = dt.getAttribute('data-dt'); renderPay(); return; }
-      var rs = t.closest('button[data-rest]');
-      if (rs) { var o = 0, nn = payNums(); CFG().methods.forEach(function (m) { if (m.id !== rs.getAttribute('data-rest')) o += parseFloat(pay.amt[m.id]) || 0; }); pay.amt[rs.getAttribute('data-rest')] = String(Math.max(0, S.r2(nn.net - o))); renderPay(); return; }
-      var qc = t.closest('button[data-qc]'); if (qc) { var v = qc.getAttribute('data-qc'); pay.amt.cash = v === 'exact' ? '' : v; renderPay(); return; }
-      if (t.id === 'payGo') completeSale();
-    } else if (mode === 'start') { if (t.id === 'startGo') doStart(); }
-    else if (mode === 'done') { if (t.id === 'printSale') printSale(t); }
+  var charge = window.MBCharge.init({
+    $: $, money: money, CFG: CFG,
+    cart: function () { return cart; }, cust: function () { return cust; }, orderType: function () { return orderType; },
+    fixing: function () { return fixing; }, removed: function () { return removed; },
+    mode: function () { return mode; }, setMode: function (m) { mode = m; }, openSheet: openSheet,
+    cartTotal: cartTotal, cartCount: cartCount, lineTotal: lineTotal, lineDiscC: lineDiscC,
+    finishOrder: function () { fixing = null; setCust(''); cart = []; removed = []; saveRemoved(); setType('dine'); saveCart(); paintBar(); paintOrdBtn(); }
   });
-  $('sheet').addEventListener('input', function (e) {
-    if (mode !== 'pay') return;
-    if (e.target.id === 'payDisc') { pay.disc = e.target.value; refreshPay(); }
-    else if (e.target.getAttribute('data-pm')) { pay.amt[e.target.getAttribute('data-pm')] = e.target.value; refreshPay(); }
-    else if (e.target.getAttribute('data-idn') || e.target.getAttribute('data-idi')) {
-      var ik = e.target.getAttribute('data-idn') || e.target.getAttribute('data-idi');
-      pay.ids[ik] = pay.ids[ik] || {}; pay.ids[ik][e.target.getAttribute('data-idn') ? 'name' : 'id'] = e.target.value;
-    }
-    else if (e.target.getAttribute('data-pr')) pay.ref[e.target.getAttribute('data-pr')] = e.target.value;
-  });
-  $('sheet').addEventListener('change', function (e) {
-    if (mode !== 'pay') return;
-    var dp = e.target.getAttribute('data-dp'), ds = e.target.getAttribute('data-ds');
-    if (dp) { if (e.target.checked) pay.dsel[dp] = 'all'; else delete pay.dsel[dp]; renderPay(); }
-    else if (ds) { pay.dsel[ds] = e.target.value; renderPay(); }
-  });
+  var openCharge = charge.open, payText = charge.payText;
 
   /* ---------- order history ---------- */
   var hDate = '', hId = null;
@@ -904,12 +706,12 @@
       // orders of the open shift can be swiped to delete (PIN needed); older ones can only be refunded
       return S.current() && s.shift === S.current().no ? '<div class="swrow"><button class="sw-del" data-odel="' + esc(s.id) + '" tabindex="-1" aria-hidden="true">Delete</button><div class="sw-in">' + row + '</div></div>' : row;
     }).join('') || '<div class="empty">No orders on this day.</div>';
-    h += '</div><div class="sh-foot"><a class="text-btn" href="../receipts/" style="min-height:44px;display:inline-flex;align-items:center">All receipts</a><button class="primary" data-close>Close</button></div>';
+    h += '</div><div class="sh-foot"><a class="text-btn tap" href="../receipts/">All receipts</a><button class="primary" data-close>Close</button></div>';
     $('sheet').innerHTML = h;
   }
   // delete an order of the open shift for good: confirm, PIN, and a line in the activity log
   async function deleteOrder(s) {
-    if (!confirm('Delete ' + saleLabel(s) + ' (' + money(s.net) + ') for good?\nIt is removed from sales and from this shift, as if it never happened. If money was given back, use Refund instead.')) return;
+    if (!(await S.ask('It is removed from sales and from this shift, as if it never happened. If money was given back, use Refund instead.', 'Delete order', 'Delete ' + saleLabel(s) + ' (' + money(s.net) + ') for good?'))) return;
     var g2 = await MBGuard.ask({ title: 'Delete ' + saleLabel(s), detail: money(s.net) + ' will be removed completely.' });
     if (!g2.ok) return;
     var lbl = saleLabel(s) + ' · ' + money(s.net) + ' · ' + linesText(s);

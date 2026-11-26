@@ -102,7 +102,7 @@
 /* tablets held sideways are short, so tighten the bills list to avoid scrolling */
 @media (min-width: 768px) and (max-height: 820px) {
   body.pg-counter .row { height: 54px; }
-  body.pg-counter .step { height: 38px; width: 40px; }
+  body.pg-counter .step { height: 44px; width: 44px; }
 }
 
 @media (min-width: 1100px) {

@@ -11,38 +11,41 @@
 <link rel="stylesheet" href="../../shared/css/app.css">
 <link rel="stylesheet" href="../../shared/css/wide.css">
 <link rel="stylesheet" href="../../shared/css/brand.css">
-<style>
-  .row { display: flex; gap: 8px; align-items: center; padding: 8px 16px; border-top: 1px solid var(--line); }
-  .row input { flex: 1; min-width: 0; }
-  .row input.n { max-width: 80px; flex: none; text-align: right; }
-  h3 { margin: 18px 16px 6px; font-size: 15px; }
-  .add, .rm { height: 38px; padding: 0 12px; border-radius: 6px; border: 1px solid var(--line); background: #fff; font: inherit; cursor: pointer; }
-  .rm { color: var(--bad); }
-  .note { margin: 4px 16px; font-size: 13px; color: var(--muted); }
-</style>
 </head>
 <body class="pg-narrow">
 <div class="app">
   <div class="top"><a href="../home/" class="icon-btn" aria-label="Back">&#8249;</a><b>Settings</b></div>
-  <h3>Receipts</h3>
-  <label class="row"><input type="checkbox" id="auto" style="flex:none"> Print the receipt automatically after charging</label>
-  <h3>Payment methods</h3>
-  <div class="note">Cash is always there. Add e-wallets or cards; they can be split with cash when charging.</div>
-  <div id="methods"></div><div class="row"><button class="add" id="addM">Add method</button></div>
-  <h3>Discounts</h3>
-  <div class="note">Shown as toggles when charging, and as quick buttons when you tap Discount on an item in the order. Each can apply to the whole order or one item.</div>
-  <div id="discs"></div><div class="row"><button class="add" id="addD">Add discount</button></div>
-  <label class="row"><input type="checkbox" id="dStack" style="flex:none"> Allow several discounts on the same order (they add up)</label>
-  <div class="row">A manual discount above <input class="n" id="dLimit" type="number" min="0" max="100"> % needs the PIN (0 = always)</div>
-  <label class="row"><input type="checkbox" id="vatReg" style="flex:none"> VAT-registered (PWD and Senior discounts come off the VAT-free price, and receipts show a VAT line)</label>
-  <h3>Inventory units</h3>
-  <div id="units"></div><div class="row"><button class="add" id="addU">Add unit</button></div>
-  <h3>Activity log</h3>
-  <div class="note">Refunds, deletes, corrections and manual discounts, newest first. Kept on this phone only (last 500). There is one shared PIN, so "by" is the cashier of the open shift.</div>
-  <div id="audit"></div>
-  <h3>Reset settings</h3>
-  <div class="note">Resets only these settings (methods, discounts, units, auto-print) to the defaults. Sales, shifts, menu, inventory and recipes are never touched. Your current settings are kept so you can undo.</div>
-  <div class="row"><button class="rm" id="reset">Reset settings</button><button class="add" id="undo">Undo reset</button></div>
+  <section class="set-card">
+    <h3>Receipts</h3>
+    <label class="switch-row"><span class="t">Print receipt after charging<small>Prints on its own when a sale is saved.</small></span><input type="checkbox" id="auto"><span class="switch"></span></label>
+  </section>
+  <section class="set-card">
+    <h3>Payments</h3>
+    <div class="note">Cash is always there. Add e-wallets or cards; they can be split with cash when charging.</div>
+    <div id="methods"></div><div class="row"><button class="add" id="addM">Add method</button></div>
+  </section>
+  <section class="set-card">
+    <h3>Discounts and VAT</h3>
+    <div class="note">Shown as toggles when charging, and as quick buttons on an item in the order. Each can apply to the whole order or one item.</div>
+    <div id="discs"></div><div class="row"><button class="add" id="addD">Add discount</button></div>
+    <label class="switch-row"><span class="t">Stack discounts<small>Several discounts on one order add up.</small></span><input type="checkbox" id="dStack"><span class="switch"></span></label>
+    <div class="row">Manual discount above <input autocomplete="off" class="n" id="dLimit" type="number" inputmode="decimal" min="0" max="100"> % needs the PIN (0 = always)</div>
+    <label class="switch-row"><span class="t">VAT-registered<small>PWD and Senior come off the VAT-free price. Receipts show a VAT line.</small></span><input type="checkbox" id="vatReg"><span class="switch"></span></label>
+  </section>
+  <section class="set-card">
+    <h3>Inventory units</h3>
+    <div id="units"></div><div class="row"><button class="add" id="addU">Add unit</button></div>
+  </section>
+  <details class="set-card">
+    <summary>Activity log</summary>
+    <div class="note">Refunds, deletes, corrections and manual discounts, newest first. Kept on this phone only (last 500). There is one shared PIN, so "by" is the cashier of the open shift.</div>
+    <div id="audit"></div>
+  </details>
+  <section class="set-card">
+    <h3>Reset</h3>
+    <div class="note">Resets only these settings (methods, discounts, units, auto-print) to the defaults. Sales, shifts, menu, inventory and recipes are never touched. Your current settings are kept so you can undo.</div>
+    <div class="row"><button class="rm" id="reset">Reset settings</button><button class="add" id="undo">Undo reset</button></div>
+  </section>
 </div>
 <script src="../../shared/js/pos-config.js"></script>
 <script src="../../shared/js/guard.js"></script>
@@ -56,15 +59,15 @@
     $('dStack').checked = g.discRules.stack; $('dLimit').value = g.discRules.limitPct;
     $('vatReg').checked = !!g.vatRegistered;
     $('methods').innerHTML = g.methods.map(function (m, i) {
-      return '<div class="row"><input data-k="m" data-i="' + i + '" value="' + esc(m.name) + '"' + (m.id === 'cash' ? ' disabled' : '') + '>' +
+      return '<div class="row"><input data-k="m" data-i="' + i + '" value="' + esc(m.name) + '" autocomplete="off"' + (m.id === 'cash' ? ' disabled' : '') + '>' +
         (m.id === 'cash' ? '' : '<button class="rm" data-rm="m' + i + '">Remove</button>') + '</div>';
     }).join('');
     $('discs').innerHTML = g.discounts.map(function (d, i) {
-      return '<div class="row"><input data-k="dn" data-i="' + i + '" value="' + esc(d.name) + '"><input class="n" data-k="dp" data-i="' + i + '" type="number" min="0" max="100" value="' + d.pct + '">%' +
+      return '<div class="row"><input data-k="dn" data-i="' + i + '" value="' + esc(d.name) + '" autocomplete="off"><input autocomplete="off" class="n" data-k="dp" data-i="' + i + '" type="number" inputmode="decimal" min="0" max="100" value="' + d.pct + '">%' +
         '<button class="rm" data-rm="d' + i + '">Remove</button></div>';
     }).join('');
     $('units').innerHTML = g.units.map(function (u, i) {
-      return '<div class="row"><input data-k="u" data-i="' + i + '" value="' + esc(u) + '"><button class="rm" data-rm="u' + i + '">Remove</button></div>';
+      return '<div class="row"><input data-k="u" data-i="' + i + '" value="' + esc(u) + '" autocomplete="off"><button class="rm" data-rm="u' + i + '">Remove</button></div>';
     }).join('');
   }
   document.addEventListener('input', function (e) {
@@ -95,7 +98,7 @@
     var l = MBGuard.list(100);
     $('audit').innerHTML = l.length ? l.map(function (x) {
       var dt = new Date(x.t).toLocaleString('en-PH', { timeZone: 'Asia/Manila', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
-      return '<div class="row" style="display:block"><b>' + esc(x.a) + '</b> <span style="color:var(--muted)">' + esc(dt) + '</span><div style="font-size:13px">' +
+      return '<div class="row stack"><b>' + esc(x.a) + '</b> <span class="muted">' + esc(dt) + '</span><div class="d">' +
         esc(x.d) + (x.by ? ' · by ' + esc(x.by) : '') + (x.pos ? ' · ' + esc(x.pos) : '') + (x.why ? ' · "' + esc(x.why) + '"' : '') + '</div></div>';
     }).join('') : '<div class="note">Nothing logged yet.</div>';
   }

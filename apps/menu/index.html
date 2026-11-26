@@ -18,9 +18,9 @@
 <style>
   .tabs { grid-template-columns: repeat(4, 1fr); }
   .pick { padding: 10px 16px; border-bottom: 1px solid var(--line); }
-  .pick select { width: 100%; height: 42px; border: 1.5px solid #c9c1b5; border-radius: 6px; padding: 0 10px; font: inherit; background: #fff; color: var(--ink); }
+  .pick select { width: 100%; height: 44px; border: 1.5px solid #c9c1b5; border-radius: 6px; padding: 0 10px; font: inherit; background: #fff; color: var(--ink); }
   .movers { display: flex; gap: 4px; }
-  .movers button { width: 36px; height: 36px; }
+  .movers button { width: 44px; height: 44px; }
   .grp-title { padding: 12px 16px 4px; font-size: 13px; font-weight: 650; color: var(--muted); }
   .check-list .check { min-height: 44px; }
 </style>
@@ -30,7 +30,7 @@
 <body class="pg-menu">
 <div class="app">
   <div class="top">
-    <a href="../home/" aria-label="Home" style="display:flex"><img src="../../shared/icons/logo-64.png" alt=""></a>
+    <a class="logo" href="../home/" aria-label="Home"><img src="../../shared/icons/logo-64.png" alt=""></a>
     <div><b>Marina Bay's Cafe</b><span class="sub">Menu editor</span></div>
     <nav class="apps" aria-label="Apps"><a href="../pos/">POS</a><a href="../home/">All apps</a></nav>
   </div>
@@ -45,7 +45,7 @@
         <div class="sect" style="padding:0 0 2px">Public menu and QR code</div>
         <p class="help2" id="pubStatus" role="status" style="margin:0 0 8px">Checking...</p>
         <div class="frow"><label for="pubNote">Message at the top (optional)</label><input class="field" id="pubNote" type="text" maxlength="160" placeholder="For example, Open daily 8am to 9pm" autocomplete="off"></div>
-        <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap"><button class="primary" id="pubGo" type="button" disabled>Publish menu</button><a class="text-btn" href="../public-menu/" target="_blank" rel="noopener" style="min-height:44px;display:inline-flex;align-items:center">Preview</a><a class="text-btn" href="../qr-print/" style="min-height:44px;display:inline-flex;align-items:center">Print QR code</a></div>
+        <div class="btnrow"><button class="primary" id="pubGo" type="button" disabled>Publish menu</button><a class="text-btn tap" href="../public-menu/" target="_blank" rel="noopener">Preview</a><a class="text-btn tap" href="../qr-print/">Print QR code</a></div>
       </div>
     </section>
 
@@ -55,19 +55,19 @@
       <div class="frow"><label for="iName">Name</label><input class="field" id="iName" type="text" maxlength="50" autocomplete="off"></div>
       <div class="frow"><label for="iDesc">Description</label><input class="field" id="iDesc" type="text" maxlength="90" placeholder="Optional" autocomplete="off"></div>
       <div class="frow"><label for="iCat">Section</label><select class="field" id="iCat"></select></div>
-      <div class="sect" style="padding-bottom:2px">Sizes and prices</div>
+      <div class="sect sm">Sizes and prices</div>
       <div id="optRows"></div>
-      <div style="padding:10px 16px"><button class="small-btn" id="addOpt">+ Add size</button></div>
+      <div class="pad"><button class="small-btn" id="addOpt">+ Add size</button></div>
       <label class="check"><input type="checkbox" id="iBest"> Best seller</label>
       <label class="check"><input type="checkbox" id="iSold"> Sold out (cannot be ordered)</label>
       <label class="check"><input type="checkbox" id="iCheck"> Price needs checking</label>
-      <div class="block"><label for="iNote">Notes</label><small>Only shown here, for you and the staff who edit the menu.</small><textarea class="field" id="iNote" rows="2" maxlength="200"></textarea></div>
+      <div class="block"><label for="iNote">Notes</label><small>Only shown here, for you and the staff who edit the menu.</small><textarea autocomplete="off" class="field" id="iNote" rows="2" maxlength="200"></textarea></div>
       <div class="actions"><button class="primary" id="saveItem">Save</button><button class="text-btn danger" id="delItem">Delete</button></div>
     </section>
 
     <!-- SECTIONS -->
     <section class="view" id="v-cats">
-      <div class="sub-note" style="padding-top:12px">The order here is the order of the buttons in the point of sale.</div>
+      <div class="sub-note top">The order here is the order of the buttons in the point of sale.</div>
       <div id="catList"></div>
       <button class="add-btn" id="addCat">Add section</button>
     </section>
@@ -85,7 +85,7 @@
 
     <!-- ADD-ONS -->
     <section class="view" id="v-addons">
-      <div class="sub-note" style="padding-top:12px">Add-ons are extras like the Ship Upgrades. Each group is offered on the sections you pick.</div>
+      <div class="sub-note top">Add-ons are extras like the Ship Upgrades. Each group is offered on the sections you pick.</div>
       <div id="addonList"></div>
       <button class="add-btn" id="addAddon">Add group</button>
     </section>
@@ -94,22 +94,22 @@
     <section class="view" id="v-addon">
       <div class="editbar"><button class="icon-btn" data-back="addons" aria-label="Back">&#8249;</button><b id="addonTitle">Add-on group</b></div>
       <div class="frow"><label for="aName">Group name</label><input class="field" id="aName" type="text" maxlength="40" autocomplete="off"></div>
-      <div class="sect" style="padding-bottom:2px">Offered on</div>
+      <div class="sect sm">Offered on</div>
       <div class="check-list" id="aCats"></div>
-      <div class="sect" style="padding-bottom:2px">Extras</div>
+      <div class="sect sm">Extras</div>
       <div id="aRows"></div>
-      <div style="padding:10px 16px"><button class="small-btn" id="addExtra">+ Add extra</button></div>
+      <div class="pad"><button class="small-btn" id="addExtra">+ Add extra</button></div>
       <div class="actions"><button class="primary" id="saveAddon">Save</button><button class="text-btn danger" id="delAddon">Delete</button></div>
     </section>
 
     <!-- DATA -->
     <section class="view" id="v-data">
-      <div class="prow" style="cursor:default"><div class="what"><b id="statMenu"></b><span class="s">The starting menu comes from menu-default.js. Changes made here are saved on this device.</span></div></div>
+      <div class="prow static"><div class="what"><b id="statMenu"></b><span class="s">The starting menu comes from menu-default.js. Changes made here are saved on this device.</span></div></div>
       <button class="prow" id="backup"><div class="what"><b>Save a backup</b><span class="s">Downloads the whole menu as a file</span></div><i>&#8250;</i></button>
       <button class="prow" id="restore"><div class="what"><b>Restore from a backup</b><span class="s">Replaces the menu with a saved backup file</span></div><i>&#8250;</i></button>
       <input type="file" id="file" accept=".json,application/json" hidden>
       <button class="prow" id="csv"><div class="what"><b>Export prices (CSV)</b><span class="s">One row per item and size, for a spreadsheet</span></div><i>&#8250;</i></button>
-      <button class="prow" id="reset"><div class="what"><b style="color:var(--bad)">Reset to the starting menu</b><span class="s">Removes all your menu changes on this device</span></div><i>&#8250;</i></button>
+      <button class="prow" id="reset"><div class="what"><b class="bad">Reset to the starting menu</b><span class="s">Removes all your menu changes on this device</span></div><i>&#8250;</i></button>
     </section>
   </main>
 
@@ -128,6 +128,8 @@
 <script>
 (function () {
   var D = window.MBData, esc = D.esc, $ = function (id) { return document.getElementById(id); };
+  // Enter in a field of the form saves it
+  [['v-item', 'saveItem'], ['v-cat', 'saveCat'], ['v-addon', 'saveAddon']].forEach(function (p) { $(p[0]).addEventListener('keydown', function (e) { if (e.key === 'Enter' && e.target.tagName === 'INPUT' && e.target.type !== 'checkbox') { e.preventDefault(); $(p[1]).click(); } }); });
   var M = D.getMenu();
   function persist(msg) { if (!D.saveMenu()) D.toast('Could not save. Storage may be full.'); else if (msg) D.toast(msg); }
   function num(v) { var n = parseFloat(v); return isNaN(n) ? null : n; }
@@ -199,8 +201,8 @@
   }
   function paintOpts() {
     $('optRows').innerHTML = ed.options.map(function (o, i) {
-      return '<div class="mini-row"><input class="field o-l" type="text" maxlength="40" placeholder="Size or version" value="' + esc(o.label) + '" aria-label="Size name">' +
-        '<input class="field n o-p num" type="number" inputmode="decimal" min="0" step="0.01" placeholder="Price" value="' + esc(o.price) + '" aria-label="Price">' +
+      return '<div class="mini-row"><input autocomplete="off" class="field o-l" type="text" maxlength="40" placeholder="Size or version" value="' + esc(o.label) + '" aria-label="Size name">' +
+        '<input autocomplete="off" class="field n o-p num" type="number" inputmode="decimal" min="0" step="0.01" placeholder="Price" value="' + esc(o.price) + '" aria-label="Price">' +
         '<button class="x" data-rm="' + i + '" aria-label="Remove size">&times;</button></div>';
     }).join('');
   }
@@ -237,6 +239,7 @@
   };
   $('delItem').onclick = function () {
     if (!confirm('Delete "' + ed.name + '"?')) return;
+    D.markGone(ed.id);
     M.items = M.items.filter(function (x) { return x.id !== ed.id; });
     D.getMenu().items = M.items; persist('Deleted'); show('items');
   };
@@ -284,6 +287,7 @@
   $('delCat').onclick = function () {
     var n = D.itemsIn(cEd.id).length;
     if (!confirm('Delete "' + cEd.name + '"' + (n ? ' and its ' + n + ' items' : '') + '?')) return;
+    D.markGone(cEd.id); M.items.forEach(function (i) { if (i.cat === cEd.id) D.markGone(i.id); });
     M.categories = M.categories.filter(function (c) { return c.id !== cEd.id; });
     M.items = M.items.filter(function (i) { return i.cat !== cEd.id; });
     M.addonGroups.forEach(function (g) { g.cats = (g.cats || []).filter(function (c) { return c !== cEd.id; }); });
@@ -319,8 +323,8 @@
   }
   function paintExtras() {
     $('aRows').innerHTML = (aEd.items || []).map(function (a, i) {
-      return '<div class="mini-row" data-id="' + esc(a.id) + '" data-desc="' + esc(a.desc || '') + '"><input class="field a-n" type="text" maxlength="40" placeholder="Name" value="' + esc(a.name) + '" aria-label="Name">' +
-        '<input class="field n a-p num" type="number" inputmode="decimal" min="0" step="0.01" placeholder="Price" value="' + esc(a.price) + '" aria-label="Price">' +
+      return '<div class="mini-row" data-id="' + esc(a.id) + '" data-desc="' + esc(a.desc || '') + '"><input autocomplete="off" class="field a-n" type="text" maxlength="40" placeholder="Name" value="' + esc(a.name) + '" aria-label="Name">' +
+        '<input autocomplete="off" class="field n a-p num" type="number" inputmode="decimal" min="0" step="0.01" placeholder="Price" value="' + esc(a.price) + '" aria-label="Price">' +
         '<button class="x" data-rm="' + i + '" aria-label="Remove">&times;</button></div>';
     }).join('');
   }
@@ -353,6 +357,7 @@
   };
   $('delAddon').onclick = function () {
     if (!confirm('Delete "' + aEd.name + '"?')) return;
+    D.markGone(aEd.id);
     M.addonGroups = M.addonGroups.filter(function (g) { return g.id !== aEd.id; });
     D.getMenu().addonGroups = M.addonGroups; persist('Deleted'); show('addons');
   };

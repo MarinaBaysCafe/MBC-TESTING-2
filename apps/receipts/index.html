@@ -30,6 +30,8 @@
   .totalrow { display: flex; justify-content: space-between; align-items: baseline; padding: 12px 16px; font-size: 17px; font-weight: 700; border-top: 1px solid var(--line); }
   s.was { color: var(--muted); font-weight: 400; font-size: .85em; margin-right: 4px; }
 </style>
+<link rel="stylesheet" href="../../shared/css/wide.css">
+<link rel="stylesheet" href="../../shared/css/brand.css">
 </head>
 <body class="pg-narrow">
 <div class="app">
@@ -156,9 +158,10 @@
     h += '<div class="trail">' + tr.map(function (t) { return '<div>' + esc(t) + '</div>'; }).join('') + '</div>';
     h += '<button class="prow" data-act="img"><div class="what"><b>Share as image</b></div><i>&#8250;</i></button><button class="prow" data-act="text"><div class="what"><b>Share as text</b></div><i>&#8250;</i></button>' +
       '<button class="prow" data-act="mail"><div class="what"><b>Email</b></div><i>&#8250;</i></button>' +
-      (s.ref ? '' : '<button class="prow" data-act="fix"><div class="what"><b>Correct</b><span class="s">Refund this and open it again to change</span></div><i>&#8250;</i></button><button class="prow" data-act="refund"><div class="what"><b style="color:var(--bad)">Refund</b></div><i>&#8250;</i></button>');
+      (s.ref ? '' : '<button class="prow" data-act="fix"><div class="what"><b>Correct</b><span class="s">Refund this and open it again to change</span></div><i>&#8250;</i></button><button class="prow" data-act="refund"><div class="what"><b class="bad">Refund</b></div><i>&#8250;</i></button>');
     h += '</div><div class="sh-foot"><button class="text-btn" data-close>Close</button><button class="primary" data-act="print">Reprint</button></div>';
     $('sheet').innerHTML = h; $('shade').classList.add('on');
+    var f0 = $('sheet').querySelector('input:not([type=checkbox]):not([type=radio]), select'); if (f0) setTimeout(function () { f0.focus(); }, 30);
   }
   function closeSheet() { $('shade').classList.remove('on'); openId = null; }
   function fileName(s) { return 'receipt-' + label(s).replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, '') ; }
