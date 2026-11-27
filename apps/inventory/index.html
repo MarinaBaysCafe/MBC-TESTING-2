@@ -5,6 +5,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <script src="../../shared/js/security.js"></script>
+<script src="../../shared/js/quota.js"></script>
 <script src="../../shared/js/firebase-config.js"></script>
 <script src="../../shared/js/cloud.js" data-uses="inventory,invlog"></script>
 <meta name="robots" content="noindex, nofollow">
@@ -186,7 +187,7 @@
     var out = it.qty === 0;
     return '<div class="irow' + (out ? ' out' : '') + '" data-id="' + esc(it.id) + '"><button class="what" data-edit="' + esc(it.id) + '">' + whatHtml(it) + '</button>' +
       '<div class="step"><button data-m="' + esc(it.id) + '" aria-label="One less"' + (!it.qty ? ' disabled' : '') + '>&minus;</button>' +
-      '<input autocomplete="off" class="num" type="number" inputmode="numeric" min="0" step="1" data-q="' + esc(it.id) + '" value="' + (it.qty === null || it.qty === undefined ? '' : it.qty) + '" placeholder="-" aria-label="Amount of ' + esc(it.name) + '">' +
+      '<input autocomplete="off" class="num" type="number" inputmode="numeric" min="0" step="1" data-q="' + esc(it.id) + '" value="' + (it.qty === null || it.qty === undefined ? '' : esc(it.qty)) + '" placeholder="-" aria-label="Amount of ' + esc(it.name) + '">' +
       '<button class="plus" data-p="' + esc(it.id) + '" aria-label="One more">+</button></div></div>';
   }
   function paintList() {
@@ -315,8 +316,8 @@
     var h = '<thead><tr><th>Item</th><th>Beg</th><th>Added</th><th>Used</th><th>End</th><th>Units</th></tr></thead><tbody>', last = null;
     shown.forEach(function (r) {
       var g = r.item.group || 'Other'; if (g !== last) { h += '<tr class="g"><td colspan="6">' + esc(g) + '</td></tr>'; last = g; }
-      h += '<tr><td>' + esc(r.item.name) + '</td><td class="num">' + (r.beg == null ? '' : r.beg) + '</td><td class="num">' + (r.added || '') + '</td>' +
-        '<td class="num" title="Shift ' + r.auto + ' + manual ' + r.man + '">' + (r.used || '') + '</td><td class="num">' + (r.end == null ? '' : r.end) + '</td><td>' + esc(r.item.unit || '') + '</td></tr>';
+      h += '<tr><td>' + esc(r.item.name) + '</td><td class="num">' + (r.beg == null ? '' : esc(r.beg)) + '</td><td class="num">' + esc(r.added || '') + '</td>' +
+        '<td class="num" title="Shift ' + esc(r.auto) + ' + manual ' + esc(r.man) + '">' + esc(r.used || '') + '</td><td class="num">' + (r.end == null ? '' : esc(r.end)) + '</td><td>' + esc(r.item.unit || '') + '</td></tr>';
     });
     if (!shown.length) h += '<tr><td colspan="6" style="text-align:left;color:var(--muted)">No stock changes on this day. Use "Show all items" to see every item.</td></tr>';
     $('dlTable').innerHTML = h + '</tbody>';
@@ -336,12 +337,12 @@
   var shSec = 'Bar', BYK = 'marinabays_invsheet_v1';
   function secOf(it) { return String(it.group || 'Other').split(' \u00b7 ')[0]; }
   function byAll() { try { return JSON.parse(localStorage.getItem(BYK)) || {}; } catch (e) { return {}; } }
-  function nv(x) { return x == null ? '' : x; }
+  function nv(x) { return x == null ? '' : esc(x); }
   function cellsHtml(r, live) {
     var dis = live ? '' : ' disabled', tot = r.beg == null ? '' : r.beg + r.added;
     function inp(f, v, ph) { return '<input autocomplete="off" data-f="' + f + '" type="number" inputmode="decimal" min="0" step="any" value="' + nv(v) + '" placeholder="' + (ph || '') + '"' + dis + '>'; }
     return '<td>' + inp('oi', r.beg) + '</td><td>' + inp('in', r.added || '') + '</td><td class="tot">' + tot + '</td><td>' + inp('out', r.used || '') +
-      (r.auto ? '<small>orders ' + r.auto + '</small>' : '') + '</td><td class="ci">' + inp('ci', r.end) + '</td>';
+      (r.auto ? '<small>orders ' + esc(r.auto) + '</small>' : '') + '</td><td class="ci">' + inp('ci', r.end) + '</td>';
   }
   function paintSheet() {
     var d = $('shDate').value || MBInvLog.localToday(), live = d === MBInvLog.localToday(), rows = MBInvLog.range(d, d)[d], secs = [], h = '', lastG = null, q = $('shQ').value.trim().toLowerCase();

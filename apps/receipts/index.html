@@ -5,6 +5,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <script src="../../shared/js/security.js"></script>
+<script src="../../shared/js/quota.js"></script>
 <script src="../../shared/js/firebase-config.js"></script>
 <script src="../../shared/js/cloud.js" data-uses="sales,shifts"></script>
 <meta name="robots" content="noindex, nofollow">
@@ -138,7 +139,7 @@
     (s.lines || []).forEach(function (l) {
       var unit = Number(l.price) || 0; (l.addons || []).forEach(function (a) { unit += Number(a.p) || 0; });
       var meta = []; if (l.opt) meta.push(l.opt); (l.addons || []).forEach(function (a) { meta.push('+ ' + a.n); });
-      h += '<div class="rrow"><span><b>' + l.qty + ' x ' + esc(l.name) + '</b>' + (meta.length ? '<small>' + esc(meta.join(', ')) + '</small>' : '') + (l.note ? '<small><i>' + esc(l.note) + '</i></small>' : '') +
+      h += '<div class="rrow"><span><b>' + esc(l.qty) + ' x ' + esc(l.name) + '</b>' + (meta.length ? '<small>' + esc(meta.join(', ')) + '</small>' : '') + (l.note ? '<small><i>' + esc(l.note) + '</i></small>' : '') +
         (l.disc ? '<small>' + esc(l.dn || 'Discount') + (l.dk === 'pct' && l.dn && !/%/.test(l.dn) ? ' ' + esc(String(l.dv)) + '%' : '') + (l.dr ? ' · ' + esc(l.dr) : '') + '</small>' : '') + '</span><span class="num">' +
         (l.disc ? '<s class="was">' + N(unit * l.qty) + '</s>' + N(S.r2(unit * l.qty - l.disc)) : N(unit * l.qty)) + '</span></div>';
     });

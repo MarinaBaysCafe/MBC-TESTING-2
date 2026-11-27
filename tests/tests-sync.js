@@ -1,5 +1,5 @@
 /* Copyright (c) 2026 Marina Bay's Cafe. All rights reserved. */
-/* Two-phone sync simulation. Runs the real cloud.js against a fake in-memory Firestore. Run with:  node tests-sync.js */
+/* Two-phone sync simulation. Runs the real cloud.js against a fake in-memory Firestore. Run all tests with:  node tests/run.js */
 var vm = require('vm'), fs = require('fs'), path = require('path');
 var CLOUD = fs.readFileSync(path.join(__dirname, '..', 'shared', 'js', 'cloud.js'), 'utf8');
 var INV = 'marinabays_inventory_v1', EXP = 'marinabays_expenses_v1';

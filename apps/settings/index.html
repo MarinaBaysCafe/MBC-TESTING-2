@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <script src="../../shared/js/security.js"></script>
+<script src="../../shared/js/quota.js"></script>
+<script src="../../shared/js/util.js"></script>
 <script src="../../shared/js/firebase-config.js"></script>
 <script src="../../shared/js/cloud.js" data-uses="config"></script>
 <title>Settings | Marina Bay's Cafe</title>
@@ -52,7 +54,7 @@
 <script>
 (function () {
   var C = MBConfig, $ = function (i) { return document.getElementById(i); };
-  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  var esc = MBUtil.esc;
   function paint() {
     var g = C.get();
     $('auto').checked = g.autoPrint;
@@ -63,7 +65,7 @@
         (m.id === 'cash' ? '' : '<button class="rm" data-rm="m' + i + '">Remove</button>') + '</div>';
     }).join('');
     $('discs').innerHTML = g.discounts.map(function (d, i) {
-      return '<div class="row"><input data-k="dn" data-i="' + i + '" value="' + esc(d.name) + '" autocomplete="off"><input autocomplete="off" class="n" data-k="dp" data-i="' + i + '" type="number" inputmode="decimal" min="0" max="100" value="' + d.pct + '">%' +
+      return '<div class="row"><input data-k="dn" data-i="' + i + '" value="' + esc(d.name) + '" autocomplete="off"><input autocomplete="off" class="n" data-k="dp" data-i="' + i + '" type="number" inputmode="decimal" min="0" max="100" value="' + esc(d.pct) + '">%' +
         '<button class="rm" data-rm="d' + i + '">Remove</button></div>';
     }).join('');
     $('units').innerHTML = g.units.map(function (u, i) {

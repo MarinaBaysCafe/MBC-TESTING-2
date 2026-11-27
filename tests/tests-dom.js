@@ -1,7 +1,6 @@
 /* Copyright (c) 2026 Marina Bay's Cafe. All rights reserved. */
 /* Page tests in a simulated browser: the public menu, the QR print page and the publish box.
-   This is a test tool only, the apps do not need it. To run it once: make an empty folder, run `npm install jsdom`,
-   then `NODE_PATH=<that folder>/node_modules node tests/tests-dom.js` from the cafe folder. */
+   Test tool only, needs jsdom. Run all tests with:  node tests/run.js  (after npm install). */
 const { JSDOM, VirtualConsole } = require('jsdom'); const http = require('http');
 const path = require('path'), fs = require('fs');
 const ROOT = path.join(__dirname, '..');

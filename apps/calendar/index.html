@@ -5,6 +5,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <script src="../../shared/js/security.js"></script>
+<script src="../../shared/js/quota.js"></script>
 <script src="../../shared/js/firebase-config.js"></script>
 <script src="../../shared/js/cloud.js" data-uses="sales,shifts,expenses,counter,inventory,invlog"></script>
 <meta name="robots" content="noindex, nofollow">
@@ -145,7 +146,7 @@
       h += '<div class="sect">Shifts</div>';
       h += x.shifts.length ? x.shifts.map(function (s) {
         var when = S.fmtTime(s.openedAt) + (s.closedAt ? ' to ' + S.fmtTime(s.closedAt) : ' (open)');
-        return '<a class="rrow" href="../shift/' + (s.open ? '' : '?no=' + s.no) + '"><span>Shift ' + s.no + '<small>' + esc(when + ' · ' + s.pos) + '</small></span><span class="num">' +
+        return '<a class="rrow" href="../shift/' + (s.open ? '' : '?no=' + esc(s.no)) + '"><span>Shift ' + esc(s.no) + '<small>' + esc(when + ' · ' + s.pos) + '</small></span><span class="num">' +
           (s.open ? 'Open' : N(s.net) + '<small class="' + (s.diff < 0 ? 'neg' : '') + '">' + (s.diff === null ? '' : 'Diff ' + sg(s.diff)) + '</small>') + '</span></a>';
       }).join('') : '<div class="none">No shift.</div>';
       h += '<div class="sect">Money counter</div>';
@@ -185,8 +186,8 @@
     var last = null;
     shown.forEach(function (r) {
       var g = r.item.group || 'Other'; if (g !== last) { h += '<tr class="g"><td colspan="6">' + esc(g) + '</td></tr>'; last = g; }
-      h += '<tr><td>' + esc(r.item.name) + '</td><td class="num">' + (r.beg == null ? '' : r.beg) + '</td><td class="num">' + (r.added || '') + '</td>' +
-        '<td class="num" title="Shift ' + r.auto + ' + manual ' + r.man + '">' + (r.used || '') + '</td><td class="num">' + (r.end == null ? '' : r.end) + '</td><td>' + esc(r.item.unit || '') + '</td></tr>';
+      h += '<tr><td>' + esc(r.item.name) + '</td><td class="num">' + (r.beg == null ? '' : esc(r.beg)) + '</td><td class="num">' + esc(r.added || '') + '</td>' +
+        '<td class="num" title="Shift ' + esc(r.auto) + ' + manual ' + esc(r.man) + '">' + esc(r.used || '') + '</td><td class="num">' + (r.end == null ? '' : esc(r.end)) + '</td><td>' + esc(r.item.unit || '') + '</td></tr>';
     });
     if (!shown.length) h += '<tr><td colspan="6" class="none">No inventory activity for this day.</td></tr>';
     h += '</tbody></table></div><div class="links" style="padding-bottom:4px"><a href="#" id="invAll">' + (invAll ? 'Hide unchanged items' : 'Show all items') + '</a><a href="#" id="invX">Save as .xlsx</a></div>';

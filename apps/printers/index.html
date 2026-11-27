@@ -5,6 +5,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <script src="../../shared/js/security.js"></script>
+<script src="../../shared/js/quota.js"></script>
+<script src="../../shared/js/util.js"></script>
 <script src="../../shared/js/firebase-config.js"></script>
 <script src="../../shared/js/cloud.js" data-uses=""></script>
 <meta name="robots" content="noindex, nofollow">
@@ -126,7 +128,7 @@
 <script>
 (function () {
   var P = window.MBPrinter, S = P.state;
-  var $ = function (id) { return document.getElementById(id); };
+  var $ = MBUtil.$;
   // Enter in a field of the form saves it
   [['v-edit', 'saveBtn']].forEach(function (p) { $(p[0]).addEventListener('keydown', function (e) { if (e.key === 'Enter' && e.target.tagName === 'INPUT' && e.target.type !== 'checkbox') { e.preventDefault(); $(p[1]).click(); } }); });
   function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
@@ -155,8 +157,8 @@
   function paintList() {
     var h = '';
     S.printers.forEach(function (p) {
-      h += '<button class="prow" data-id="' + p.id + '"><div class="what"><b>' + esc(p.name || 'Printer') + '</b><span>' +
-        esc(P.TYPES[p.type]) + (p.devName ? ' &middot; ' + esc(p.devName) : '') + ' &middot; ' + p.width + ' mm</span><span>' + esc(kindsText(p)) + '</span></div><i>&#8250;</i></button>';
+      h += '<button class="prow" data-id="' + esc(p.id) + '"><div class="what"><b>' + esc(p.name || 'Printer') + '</b><span>' +
+        esc(P.TYPES[p.type]) + (p.devName ? ' &middot; ' + esc(p.devName) : '') + ' &middot; ' + esc(p.width) + ' mm</span><span>' + esc(kindsText(p)) + '</span></div><i>&#8250;</i></button>';
     });
     $('plist').innerHTML = h || '<div class="empty">No printers yet. Add one to start printing receipts.</div>';
   }

@@ -1,7 +1,6 @@
 /* Copyright (c) 2026 Marina Bay's Cafe. All rights reserved. */
 /* Opens every page in a simulated browser and checks that all its files load (no 404) and no script fails.
-   Test tool only. To run once: make an empty folder, run `npm install jsdom`, then from the cafe folder:
-   NODE_PATH=<that folder>/node_modules node tests/tests-pages.js */
+   Test tool only, needs jsdom. Run all tests with:  node tests/run.js  (after npm install). */
 const { JSDOM, VirtualConsole } = require('jsdom'), http = require('http'), path = require('path'), fs = require('fs');
 const ROOT = path.join(__dirname, '..');
 const types = { '.html': 'text/html', '.js': 'application/javascript', '.css': 'text/css', '.png': 'image/png', '.jpg': 'image/jpeg', '.webmanifest': 'application/manifest+json' };

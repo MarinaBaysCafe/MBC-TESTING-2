@@ -5,6 +5,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <script src="../../shared/js/security.js"></script>
+<script src="../../shared/js/quota.js"></script>
 <script src="../../shared/js/firebase-config.js"></script>
 <script src="../../shared/js/cloud.js" data-uses="sales,shifts,expenses,counter,inventory,menu,recipes,config,invlog"></script>
 <meta name="robots" content="noindex, nofollow">
@@ -74,6 +75,7 @@
     <a class="bigbtn" href="../pos/">Open point of sale</a>
 
     <div class="checkbar" id="checkBar" hidden></div>
+    <div class="checkbar" id="bkBar" hidden></div>
     <h2 class="sec">Every day</h2>
     <nav class="tiles">
       <a class="tile" href="../expenses/"><svg viewBox="0 0 24 24"><path d="M5 2v20l2.3-1.5L9.7 22l2.3-1.5 2.3 1.5 2.4-1.5L19 22V2l-2.3 1.5L14.3 2 12 3.5 9.7 2 7.3 3.5z"/><path d="M9 8h6M9 12h6M9 16h3"/></svg><b>Expenses</b><span id="tExp">Record what was spent</span></a>
@@ -109,6 +111,7 @@
 <script src="../../shared/js/app-data.js"></script>
 <script src="../../shared/js/storage-guard.js"></script>
 <script src="../../shared/js/shift-lib.js"></script>
+<script src="../../shared/js/backup.js"></script>
 <script src="../../shared/js/checks.js"></script>
 <script>
 (function () {
@@ -120,7 +123,7 @@
   if (cur) {
     var r = S.report(cur);
     $('shiftCard').className = 'shiftcard open';
-    $('shiftCard').innerHTML = '<div><b><i class="dot"></i>Shift ' + cur.no + ' is open</b><span class="s">Since ' + esc(S.fmtTime(cur.openedAt)) + (cur.openedBy ? ' · ' + esc(cur.openedBy) : '') + '</span><span class="s">Net sales so far ' + esc(N(r.net)) + '</span></div><a href="../shift/">View</a>';
+    $('shiftCard').innerHTML = '<div><b><i class="dot"></i>Shift ' + esc(cur.no) + ' is open</b><span class="s">Since ' + esc(S.fmtTime(cur.openedAt)) + (cur.openedBy ? ' · ' + esc(cur.openedBy) : '') + '</span><span class="s">Net sales so far ' + esc(N(r.net)) + '</span></div><a href="../shift/">View</a>';
   } else {
     $('shiftCard').innerHTML = '<div><b><i class="dot"></i>No shift is open</b><span class="s">Start a shift to take orders</span></div><a href="../shift/">Start shift</a>';
   }
@@ -135,6 +138,8 @@
   $('tShift').textContent = cur ? 'Shift ' + cur.no + ' is open' : 'No shift open';
   var nChk = window.MBChecks ? MBChecks.count() : 0;
   if (nChk) { $('checkBar').hidden = false; $('checkBar').innerHTML = '<span>' + nChk + (nChk === 1 ? ' record' : ' records') + ' may not make sense</span><a href="../checks/">Review</a>'; $('tChk').textContent = nChk + ' to review'; }
+  var bk = window.MBBackup ? MBBackup.reminder(7) : null;
+  if (bk) { $('bkBar').hidden = false; $('bkBar').innerHTML = '<span>' + esc(bk) + ' Save one so a lost or broken phone does not lose your sales.</span><a href="../data/">Back up</a>'; }
   $('tAna').textContent = x.net || x.expCash + x.expOnline ? 'Today ' + N(x.net - x.expCash - x.expOnline) + ' profit' : 'Income vs expenses';
   var t = new Date(today + 'T00:00:00Z'), mo = S.month(t.getUTCFullYear(), t.getUTCMonth()).total;
   $('tCal').textContent = mo.net ? 'This month ' + N(mo.net) : 'Every day at a glance';

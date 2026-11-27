@@ -1,0 +1,7 @@
+{
+  "name": "marina-bays-app",
+  "private": true,
+  "description": "Test tooling only. The app itself has no dependencies and no build step.",
+  "scripts": { "test": "node tests/run.js" },
+  "devDependencies": { "jsdom": "^31.0.1" }
+}

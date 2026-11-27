@@ -5,6 +5,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <script src="../../shared/js/security.js"></script>
+<script src="../../shared/js/quota.js"></script>
 <script src="../../shared/js/firebase-config.js"></script>
 <script src="../../shared/js/cloud.js" data-uses="sales,shifts,expenses,counter,inventory,invlog"></script>
 <meta name="robots" content="noindex, nofollow">
@@ -81,6 +82,7 @@
 <script src="../../shared/js/shift-lib.js"></script>
 <script src="../../shared/js/guard.js"></script>
 <script src="../../shared/js/inv-log.js"></script>
+<script src="../../shared/js/backup.js"></script>
 <script>
 (function () {
   var D = window.MBData, S = window.MBShift, esc = D.esc, $ = function (id) { return document.getElementById(id); };
@@ -139,10 +141,10 @@
         '<div class="frow"><label for="stCash">Starting cash</label><input autocomplete="off" class="field num" id="stCash" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0.00" value="' + esc(last) + '"></div>' +
         '<div class="frow"><label for="stBy">Opened by</label><input class="field" id="stBy" type="text" maxlength="30" placeholder="Name" value="' + esc(S.lastUser()) + '" autocomplete="off"></div>' +
         '<div class="actions"><button class="primary" id="startBtn">Start shift</button></div>';
-      if (prev) h += '<div class="mini">Last shift: number ' + prev.no + ', closed ' + esc(S.fmtDT(prev.closedAt)) + '. The starting cash is filled in with the same amount as before. Change it only if the drawer starts with a different amount.</div>';
+      if (prev) h += '<div class="mini">Last shift: number ' + esc(prev.no) + ', closed ' + esc(S.fmtDT(prev.closedAt)) + '. The starting cash is filled in with the same amount as before. Change it only if the drawer starts with a different amount.</div>';
     } else {
       var r = S.report(cur);
-      h += '<div class="state open"><b>Shift ' + cur.no + ' is open</b><span>Since ' + esc(S.fmtDT(cur.openedAt)) + (cur.openedBy ? ' · ' + esc(cur.openedBy) : '') + ' · ' + esc(cur.pos) + '</span></div>' +
+      h += '<div class="state open"><b>Shift ' + esc(cur.no) + ' is open</b><span>Since ' + esc(S.fmtDT(cur.openedAt)) + (cur.openedBy ? ' · ' + esc(cur.openedBy) : '') + ' · ' + esc(cur.pos) + '</span></div>' +
         reportHtml(r) +
         '<div class="actions"><button class="secondary" id="printLive">Print current report</button><button class="primary" id="endBtn">End shift</button></div>';
     }
@@ -171,7 +173,7 @@
   function openEnd() {
     var cur = S.current(); if (!cur) return;
     var r = S.report(cur), counted = S.countedCash(S.phDate(Date.now()));
-    $('sheet').innerHTML = '<div class="sh-head"><div class="t"><b>End shift ' + cur.no + '</b><span>Expected cash ' + esc(N(r.expected)) + '</span></div><button class="icon-btn" data-close aria-label="Close">&times;</button></div><div class="sh-body">' +
+    $('sheet').innerHTML = '<div class="sh-head"><div class="t"><b>End shift ' + esc(cur.no) + '</b><span>Expected cash ' + esc(N(r.expected)) + '</span></div><button class="icon-btn" data-close aria-label="Close">&times;</button></div><div class="sh-body">' +
       '<div class="help">Count the cash in the drawer. ' + (counted > 0 ? 'Today\'s count in the Money counter is ' + esc(N(counted)) + '.' : 'You can also count it in the Money counter first.') + '</div>' +
       '<div class="frow"><label for="enActual">Actual cash amount</label><input autocomplete="off" class="field num" id="enActual" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0.00" value="' + (counted > 0 ? counted : '') + '"></div>' +
       '<div class="rrow strong"><span id="enDiffLabel">Difference</span><span class="num" id="enDiff">-</span></div>' +
@@ -199,6 +201,8 @@
       closeSheet(); D.toast('Shift ' + r.no + ' ended');
       showDetail(r);
       if (id === 'enPrint') await printReport(r);
+      // one tap saves a backup file of everything, so a lost phone does not lose the day
+      if (await S.ask('Save a backup file of everything now? It is one file. Keep it on the phone or send it to yourself.', 'Save backup', 'Shift ' + r.no + ' ended')) { MBBackup.save(); D.toast('Backup saved'); }
     } else if (id === 'saleRefund') {
       var rs = S.sales().filter(function (x) { return x.id === saleId; })[0];
       var rp = rs ? await S.refundPrompt({ title: 'Refund order ' + rs.n, detail: N(rs.net) + ' will be counted as money returned in this shift report.' }) : { ok: false };
@@ -232,9 +236,9 @@
     var cur = S.current();
     if (!cur) { $('salesBody').innerHTML = '<div class="empty">No shift is open. Start a shift to see its sales.</div>'; return; }
     var list = S.salesOf(cur.no).slice().reverse();
-    $('salesBody').innerHTML = '<div class="mini" style="padding-top:12px">Shift ' + cur.no + ' · ' + list.length + (list.length === 1 ? ' order' : ' orders') + '</div>' +
+    $('salesBody').innerHTML = '<div class="mini" style="padding-top:12px">Shift ' + esc(cur.no) + ' · ' + list.length + (list.length === 1 ? ' order' : ' orders') + '</div>' +
       (list.map(function (s) {
-        return '<button class="prow" data-id="' + esc(s.id) + '"><div class="what"><b>Order ' + s.n + ' · ' + esc(S.fmtTime(s.t)) +
+        return '<button class="prow" data-id="' + esc(s.id) + '"><div class="what"><b>Order ' + esc(s.n) + ' · ' + esc(S.fmtTime(s.t)) +
           (s.ref ? '<span class="badge warn">Refunded</span>' : '') + '</b><span class="s">' + esc(summary(s)) + '</span></div><div class="r num">' + N(s.net) +
           '<span class="s" style="font-size:12px;color:var(--muted)">' + (s.pay === 'cash' ? 'Cash' : s.pay === 'split' ? 'Split' : 'E-wallet') + '</span></div></button>';
       }).join('') || '<div class="empty">No sales yet in this shift.</div>');
@@ -250,7 +254,7 @@
     }).join('');
     if (s.disc) body += row('Discount', '-' + N(s.disc));
     body += row('Total', N(s.net), 1) + ((s.pays || []).map(function (x) { return row(x.name, N(x.amt)); }).join('')) + (S.cashOf(s) > 0 || s.pay === 'cash' ? row('Cash received', N(s.tend)) + row('Change', N(s.change)) : '');
-    $('sheet').innerHTML = '<div class="sh-head"><div class="t"><b>Order ' + s.n + '</b><span>' + esc(S.fmtDT(s.t)) + (s.type ? ' · ' + S.typeText(s.type) : '') + (s.ref ? ' · Refunded' : '') + '</span></div><button class="icon-btn" data-close aria-label="Close">&times;</button></div>' +
+    $('sheet').innerHTML = '<div class="sh-head"><div class="t"><b>Order ' + esc(s.n) + '</b><span>' + esc(S.fmtDT(s.t)) + (s.type ? ' · ' + S.typeText(s.type) : '') + (s.ref ? ' · Refunded' : '') + '</span></div><button class="icon-btn" data-close aria-label="Close">&times;</button></div>' +
       '<div class="sh-body">' + body + '</div><div class="sh-foot">' + (s.ref ? '' : '<button class="text-btn danger" id="saleRefund">Refund</button>') + (S.current() && s.shift === S.current().no ? '<button class="text-btn danger" id="saleDel">Delete</button>' : '') + '<button class="primary" id="salePrint">Print receipt</button></div>';
     openSheet();
   });
@@ -259,7 +263,7 @@
   function paintHist() {
     var list = S.shifts().hist.slice().reverse();
     $('histBody').innerHTML = list.map(function (r) {
-      return '<button class="prow" data-no="' + r.no + '"><div class="what"><b>Shift ' + r.no + '</b><span class="s">' + esc(S.fmtDT(r.openedAt)) + ' to ' + esc(S.fmtDT(r.closedAt)) +
+      return '<button class="prow" data-no="' + esc(r.no) + '"><div class="what"><b>Shift ' + esc(r.no) + '</b><span class="s">' + esc(S.fmtDT(r.openedAt)) + ' to ' + esc(S.fmtDT(r.closedAt)) +
         '</span></div><div class="r num">' + N(r.net) + '<span class="s" style="font-size:12px;color:' + (r.diff < 0 ? 'var(--bad)' : 'var(--muted)') + '">' +
         (r.diff === null ? '' : 'Diff ' + S.sg(r.diff)) + '</span></div></button>';
     }).join('') || '<div class="empty">No closed shifts yet.</div>';
@@ -272,7 +276,7 @@
   function showDetail(r) {
     shown = r;
     $('detailTitle').textContent = 'Shift ' + r.no;
-    $('detailBody').innerHTML = '<div class="state"><b>Shift ' + r.no + (r.closedAt ? '' : ' (open)') + '</b><span>Opened ' + esc(S.fmtDT(r.openedAt)) + (r.openedBy ? ' by ' + esc(r.openedBy) : '') +
+    $('detailBody').innerHTML = '<div class="state"><b>Shift ' + esc(r.no) + (r.closedAt ? '' : ' (open)') + '</b><span>Opened ' + esc(S.fmtDT(r.openedAt)) + (r.openedBy ? ' by ' + esc(r.openedBy) : '') +
       '</span><span>Closed ' + esc(S.fmtDT(r.closedAt)) + (r.closedBy ? ' by ' + esc(r.closedBy) : '') + ' · ' + esc(r.pos) + '</span></div>' + reportHtml(r) +
       '<div class="actions" style="padding-top:6px"><a class="secondary" href="../calendar/?date=' + S.phDate(r.closedAt || r.openedAt) + '">See this day in the calendar</a></div>';
     show('detail');

@@ -5,6 +5,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <script src="../../shared/js/security.js"></script>
+<script src="../../shared/js/quota.js"></script>
 <script src="../../shared/js/firebase-config.js"></script>
 <script src="../../shared/js/cloud.js" data-uses=""></script>
 <meta name="robots" content="noindex, nofollow">
@@ -38,8 +39,10 @@
     <div id="stats"></div>
 
     <div class="sect">Backup</div>
-    <button class="prow" id="backup"><div class="what"><b>Save a backup of everything</b><span class="s">Menu, inventory, recipes, sales, shifts, counts, and expenses in one file</span></div><i>&#8250;</i></button>
-    <button class="prow" id="restore"><div class="what"><b>Restore from a backup</b><span class="s">Replaces the data on this device with a saved backup file</span></div><i>&#8250;</i></button>
+    <button class="prow" id="backup"><div class="what"><b>Save a backup of everything</b><span class="s">Everything saved on this device in one file: menu, inventory, recipes, sales, shifts, counts, expenses, settings. The PIN is not included.</span></div><i>&#8250;</i></button>
+    <button class="prow" id="restore"><div class="what"><b>Restore from a backup</b><span class="s">Checks the file first, then replaces the data on this device with it</span></div><i>&#8250;</i></button>
+    <button class="prow" id="undoRestore" hidden><div class="what"><b>Undo the last restore</b><span class="s" id="undoSub"></span></div><i>&#8250;</i></button>
+    <p class="warn" id="restoreMsg" role="alert" hidden></p>
     <input type="file" id="file" accept=".json,application/json" hidden>
 
     <div class="sect">Start fresh</div>
@@ -63,6 +66,7 @@
 <script src="../../shared/js/app-data.js"></script>
 <script src="../../shared/js/storage-guard.js"></script>
 <script src="../../shared/js/shift-lib.js"></script>
+<script src="../../shared/js/backup.js"></script>
 <script>
 (function () {
   var D = window.MBData, S = window.MBShift, $ = function (id) { return document.getElementById(id); };
@@ -80,6 +84,7 @@
       ['Sales', S.sales().length + ' orders'],
       ['Shifts', S.shifts().hist.length + ' closed' + (S.current() ? ', 1 open' : '')],
       ['Days with records', String(days)],
+      ['Last backup file saved', lastBackupText()],
       ['Storage used', window.MBStorage ? MBStorage.text() : 'not known'],
       ['Protected from automatic cleanup', protectedText]
     ];
@@ -88,28 +93,39 @@
   }
 
   /* ---------- backup ---------- */
-  $('backup').onclick = function () {
-    var out = { app: 'marinabays', version: 1, savedAt: new Date().toISOString(), data: {} };
-    Object.keys(KEYS).forEach(function (k) { try { out.data[k] = JSON.parse(localStorage.getItem(KEYS[k])); } catch (e) { out.data[k] = null; } });
-    D.download('marina-bays-backup-' + D.todayPH() + '.json', JSON.stringify(out)); D.toast('Backup saved');
-  };
-  $('restore').onclick = function () { $('file').click(); };
+  function lastBackupText() {
+    var t = MBBackup.lastAt(); if (!t) return 'Never. Save one now.';
+    var d = MBBackup.daysSince(); return new Date(t).toLocaleDateString('en-PH', { timeZone: 'Asia/Manila', month: 'short', day: 'numeric', year: 'numeric' }) + (d === 0 ? ' (today)' : ' (' + d + (d === 1 ? ' day' : ' days') + ' ago)');
+  }
+  function paintUndo() {
+    var u = MBBackup.undoInfo(); $('undoRestore').hidden = !u;
+    if (u) $('undoSub').textContent = 'Puts back the data from before the restore of ' + new Date(u.t).toLocaleString('en-PH', { timeZone: 'Asia/Manila', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+  }
+  function say(msg) { $('restoreMsg').textContent = msg || ''; $('restoreMsg').hidden = !msg; }
+  $('backup').onclick = function () { say(''); MBBackup.save(); D.toast('Backup saved'); paintStats(); };
+  $('restore').onclick = function () { say(''); $('file').click(); };
   $('file').onchange = function (e) {
     var f = e.target.files[0]; if (!f) return;
     var rd = new FileReader();
-    rd.onload = function () {
-      try {
-        var b = JSON.parse(rd.result);
-        if (!b || b.app !== 'marinabays' || !b.data) throw 0;
-        if (confirm('Replace the data on this device with this backup (saved ' + String(b.savedAt || '').slice(0, 10) + ')?')) {
-          Object.keys(KEYS).forEach(function (k) { if (b.data[k] != null) localStorage.setItem(KEYS[k], JSON.stringify(b.data[k])); });
-          D.toast('Backup restored'); setTimeout(function () { location.reload(); }, 700);
-        }
-      } catch (err) { alert('That file is not a Marina Bay\'s backup.'); }
-      $('file').value = '';
+    rd.onload = async function () {
+      var c = MBBackup.check(rd.result);
+      if (!c.ok) { say(c.error); $('file').value = ''; return; }
+      var when = String(c.savedAt || '').slice(0, 10), cloud = window.MBCloud && window.MBCloud.status().user;
+      var go = await S.ask('Replace the data on this device with this backup' + (when ? ' (saved ' + when : ' (') + ', ' + c.sales + (c.sales === 1 ? ' order' : ' orders') + ')? A copy of what is here now is kept so you can undo.' + (cloud ? ' You are signed in to cloud sync, so the restored data will also go to your other devices.' : ''), 'Restore', 'Restore this backup?');
+      if (!go) { $('file').value = ''; return; }
+      var r = MBBackup.restore(c);
+      if (!r.ok) { say(r.error); $('file').value = ''; return; }
+      D.toast(r.undo === 'file' ? 'Restored. The old data was saved as a file, because there was no room to keep a copy here.' : 'Backup restored'); setTimeout(function () { location.reload(); }, r.undo === 'file' ? 2500 : 700);
     };
+    rd.onerror = function () { say('The file could not be read.'); };
     rd.readAsText(f);
   };
+  $('undoRestore').onclick = async function () {
+    if (!(await S.ask('Put back the data from before the last restore? What is on this device now will be replaced.', 'Undo restore', 'Undo the restore?'))) return;
+    var r = MBBackup.undoRestore(); if (!r.ok) { say(r.error); return; }
+    D.toast('Restore undone'); setTimeout(function () { location.reload(); }, 700);
+  };
+  MBBackup.dropOldUndo(7); paintUndo();
 
   /* ---------- start fresh ---------- */
   $('confirmText').addEventListener('input', function () { $('resetBtn').disabled = $('confirmText').value.trim().toUpperCase() !== 'RESET'; });

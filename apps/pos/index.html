@@ -5,6 +5,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <script src="../../shared/js/security.js"></script>
+<script src="../../shared/js/quota.js"></script>
 <script src="../../shared/js/firebase-config.js"></script>
 <script src="../../shared/js/cloud.js" data-uses="menu,sales,shifts,config"></script>
 <meta name="robots" content="noindex, nofollow">
@@ -77,7 +78,7 @@
       <div class="searchbar"><input id="q" type="search" placeholder="Search the menu" autocomplete="off"><button class="ordbtn" id="drwBtn" type="button" style="display:none">Drawer</button><button class="ordbtn" id="heldBtn" type="button" style="display:none">Held</button><button class="ordbtn" id="ordBtn" type="button">Orders</button></div>
       <div class="catbar" id="chips"></div>
       <main id="main"><div id="items"></div></main>
-      <div class="cartbar"><button id="openCart" disabled><span id="cartCount">No items yet</span><b class="num" id="cartTotal">₱0</b></button></div>
+      <div class="cartbar"><button id="openCart" disabled><span id="cartCount">Order · 0 items</span><b class="num" id="cartTotal">₱0</b></button></div>
     </div>
     <aside class="pos-right" id="cartPanel" aria-label="Current order"></aside>
   </div>
@@ -104,7 +105,12 @@
   var D = window.MBData, esc = D.esc, $ = function (id) { return document.getElementById(id); };
   var CART_KEY = 'marinabays_cart_v1';
   var cart = [];
-  try { cart = JSON.parse(localStorage.getItem(CART_KEY)) || []; } catch (e) { cart = []; }
+  // quantities and prices read back from storage are made into numbers, so a damaged value cannot end up in the page as text
+  function cleanCart(c) {
+    if (!Array.isArray(c)) return [];
+    return c.filter(function (l) { return l && typeof l === 'object'; }).map(function (l) { l.qty = Math.max(1, Math.floor(Number(l.qty)) || 1); l.price = Number(l.price) || 0; return l; });
+  }
+  try { cart = cleanCart(JSON.parse(localStorage.getItem(CART_KEY))); } catch (e) { cart = []; }
   function saveCart() { try { localStorage.setItem(CART_KEY, JSON.stringify(cart)); } catch (e) {} }
   /* ---------- hold an order and come back to it ---------- */
   var HELD_KEY = 'marinabays_held_v1', REM_KEY = 'marinabays_removed_v1', held = [], removed = [];
@@ -314,7 +320,7 @@
   function paintBar() {
     var n = cartCount();
     $('openCart').disabled = n === 0;
-    $('cartCount').textContent = n ? 'View order · ' + n + (n === 1 ? ' item' : ' items') : 'No items yet';
+    $('cartCount').textContent = (n ? 'View order · ' : 'Order · ') + n + (n === 1 ? ' item' : ' items');
     $('cartTotal').textContent = n ? D.pesoShort(cartNet()) : '₱0';
     if (WIDE.matches) paintPanel();
   }
@@ -325,7 +331,10 @@
     $('shade').classList.add('on');
     if (mode === 'hold' || mode === 'ld' || mode === 'start') { var f = $('sheet').querySelector('input:not([type=checkbox]):not([type=radio])'); if (f) setTimeout(function () { f.focus(); }, 30); }
   }
-  function closeSheet() { $('shade').classList.remove('on'); mode = ''; sel = null; swOpenRow = null; }
+  function closeSheet() {
+    var was = mode; $('shade').classList.remove('on'); mode = ''; sel = null; swOpenRow = null;
+    if (was === 'done') { var q0 = $('q'); if (q0) q0.focus(); }      // after a sale, ready for the next order
+  }
   $('shade').addEventListener('click', function (e) { if (e.target === $('shade')) closeSheet(); });
 
   function openItem(id) {
@@ -393,7 +402,7 @@
         (meta.length ? '<div class="meta">' + esc(meta.join(', ')) + '</div>' : '') +
         (l.note ? '<div class="meta"><i>' + esc(l.note) + '</i></div>' : '') +
         (dC ? '<div class="meta">' + esc(ldText(l)) + ' &minus;' + D.pesoShort(MM.fromC(dC)) + '</div>' : '') +
-        '<div class="l3"><div class="stepper"><button data-l="' + i + '" data-d="-1" aria-label="Fewer">&minus;</button><b class="num">' + l.qty +
+        '<div class="l3"><div class="stepper"><button data-l="' + i + '" data-d="-1" aria-label="Fewer">&minus;</button><b class="num">' + esc(l.qty) +
         '</b><button data-l="' + i + '" data-d="1" aria-label="More">+</button></div><span class="meta num">' + D.pesoShort(lineUnit(l)) + ' each</span></div><div class="l4"><button class="text-btn" data-ld="' + i + '">' + (l.ld ? 'Edit discount' : 'Discount') + '</button><button class="text-btn danger" data-rmb="' + i + '">Remove</button></div></div></div>';
     });
     h += '</div>';
@@ -592,7 +601,7 @@
       i = held.map(function (e) { return e.id; }).indexOf(e0.id);
     }
     var e = held[i]; held.splice(i, 1); if (!saveHeld()) { held.splice(i, 0, e); D.toast('Could not save. Storage may be full.'); return; }
-    cart = e.cart || []; removed = e.rm || []; setCust(e.cust || ''); saveRemoved(); setType(e.type); saveCart(); paintBar(); paintHeld(); closeSheet(); D.toast('Order resumed');
+    cart = cleanCart(e.cart); removed = e.rm || []; setCust(e.cust || ''); saveRemoved(); setType(e.type); saveCart(); paintBar(); paintHeld(); closeSheet(); D.toast('Order resumed');
   }
   $('heldBtn').addEventListener('click', openHeld);
   function holdClicks(e) {
@@ -730,7 +739,7 @@
     s.lines.forEach(function (l) {
       var unit = l.price; (l.addons || []).forEach(function (a) { unit += a.p; });
       var meta = []; if (l.opt) meta.push(l.opt); (l.addons || []).forEach(function (a) { meta.push('+ ' + a.n); });
-      h += '<div class="line"><div class="l1"><b>' + l.qty + ' x ' + esc(l.name) + '</b><span class="num">' + D.pesoShort(unit * l.qty) + '</span></div>' +
+      h += '<div class="line"><div class="l1"><b>' + esc(l.qty) + ' x ' + esc(l.name) + '</b><span class="num">' + D.pesoShort(unit * l.qty) + '</span></div>' +
         (meta.length ? '<div class="meta">' + esc(meta.join(', ')) + '</div>' : '') + (l.note ? '<div class="meta"><i>' + esc(l.note) + '</i></div>' : '') +
         (l.disc ? '<div class="meta">' + esc(l.dn || 'Discount') + ' &minus;' + D.pesoShort(l.disc) + '</div>' : '') + '</div>';
     });

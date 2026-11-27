@@ -85,7 +85,7 @@
     }
     function renderPay() {
       var cart = ctx.cart(), cfg = CFG(), n = payNums(), cur = S.current(), cash = pay.split || pay.method === 'cash';
-      var h = '<div class="sh-head"><div class="t"><b>Charge</b><span>Shift ' + cur.no + ' · ' + ctx.cartCount() + (ctx.cartCount() === 1 ? ' item' : ' items') + ' · ' + S.typeText(ctx.orderType()) +
+      var h = '<div class="sh-head"><div class="t"><b>Charge</b><span>Shift ' + esc(cur.no) + ' · ' + ctx.cartCount() + (ctx.cartCount() === 1 ? ' item' : ' items') + ' · ' + S.typeText(ctx.orderType()) +
         '</span></div><button class="icon-btn" data-close aria-label="Close">&times;</button></div><div class="sh-body">';
       h += '<div class="totalrow"><span>Total</span><span class="num">' + money(n.gross) + '</span></div>';
       cfg.discounts.forEach(function (pr) {
@@ -134,6 +134,11 @@
     function refRow(m) {
       return '<div class="frow" id="prw-' + esc(m.id) + '" hidden><label for="pr-' + esc(m.id) + '">' + esc(m.name) + ' reference no.</label><input class="field" id="pr-' + esc(m.id) + '" data-pr="' + esc(m.id) + '" type="text" maxlength="40" placeholder="Optional" value="' + esc(pay.ref[m.id] || '') + '" autocomplete="off"></div>';
     }
+    // the method named on the Charge button: the chosen one, or "Split"
+    function methodLabel() {
+      if (pay.split) return 'Split';
+      var m = CFG().methods.filter(function (x) { return x.id === pay.method; })[0]; return m ? m.name : 'Cash';
+    }
     function refreshPay() {
       var cart = ctx.cart(), n = payNums(), sn = $('stackNote'), cfg = CFG();
       if (sn) {          // stacking is switched off in Settings and two toggles cover the same part
@@ -145,7 +150,7 @@
       var miss = idMissing(), er = $('idErr');
       er.hidden = !miss.length; er.textContent = miss.length ? 'Enter the name and ID number for ' + miss.join(' and ') + '.' : '';
       $('payNet').textContent = money(n.net); $('payDiscAmt').textContent = n.d ? '-' + money(n.d) : '₱0.00';
-      $('payGo').textContent = 'Complete sale · ' + D.pesoShort(n.net); $('payGo').disabled = miss.length > 0;
+      $('payGo').textContent = 'Charge ' + D.pesoShort(n.net) + ' · ' + methodLabel(); $('payGo').disabled = miss.length > 0;
       var short = n.tend < n.cashDue, cl = $('chgLabel');
       if (cl) {
         cl.textContent = n.over ? 'Over by' : short ? 'Still needed' : 'Change';
@@ -192,7 +197,7 @@
         if (!S.addSale(sale)) { D.toast('Could not save the sale. Storage may be full.'); return; }
         if (manual) MBGuard.log('Manual discount', (sale.rno || 'Order ' + sale.n) + ' · discount ' + money(n.d) + ' of ' + money(n.gross), why);
         sale.lines.forEach(function (l) { if (l.disc && !l.di) MBGuard.log('Manual discount', (sale.rno || 'Order ' + sale.n) + ' · ' + l.name + ' · -' + money(l.disc), l.dr || ''); });
-        if (fixing) S.refund(fixing.id, true);
+        if (fixing && !S.refund(fixing.id, true)) D.toast('New order saved, but the old one could not be refunded. Refund it in Orders.');
         lastSale = sale; ctx.finishOrder();
         ctx.setMode('done'); renderDone();
         var cash = S.cashOf(sale) > 0;
@@ -205,7 +210,7 @@
     }
     function renderDone() {
       var s = lastSale;
-      var h = '<div class="sh-head"><div class="t"><b>Sale saved</b><span>Order ' + s.n + ' · Shift ' + s.shift + ' · ' + S.typeText(s.type) + '</span></div><button class="icon-btn" data-close aria-label="Close">&times;</button></div><div class="sh-body">' +
+      var h = '<div class="sh-head"><div class="t"><b>Sale saved</b><span>Order ' + esc(s.n) + ' · Shift ' + s.shift + ' · ' + S.typeText(s.type) + '</span></div><button class="icon-btn" data-close aria-label="Close">&times;</button></div><div class="sh-body">' +
         '<div class="big num">' + money(s.net) + '</div><div class="bigsub">' + esc(payText(s)) + (s.disc ? ' · Discount ' + money(s.disc) : '') + '</div></div>' +
         '<div class="sh-foot"><button class="secondary" id="printSale">Print again</button><button class="primary" data-close>New order</button></div>';
       $('sheet').innerHTML = h;

@@ -5,6 +5,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <script src="../../shared/js/security.js"></script>
+<script src="../../shared/js/quota.js"></script>
+<script src="../../shared/js/util.js"></script>
 <script src="../../shared/js/firebase-config.js"></script>
 <script src="../../shared/js/cloud.js" data-uses="expenses,counter"></script>
 <meta name="robots" content="noindex, nofollow">
@@ -218,10 +220,9 @@
   var TZ = 'Asia/Manila';
   var MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
   var DEFAULT_CATS = ['Ingredients', 'Supplies', 'Utilities', 'Salary', 'Rent', 'Transport', 'Repairs', 'Other'];
-  var $ = function (id) { return document.getElementById(id); };
+  var $ = MBUtil.$;
 
-  function peso(n) { return '₱' + Number(n).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
-  function pesoShort(n) { return '₱' + Number(n).toLocaleString('en-PH', { maximumFractionDigits: 0 }); }
+  var peso = MBUtil.peso, pesoShort = MBUtil.pesoShort;
   function pad(n) { return (n < 10 ? '0' : '') + n; }
   function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
   function todayPH() { return new Intl.DateTimeFormat('en-CA', { timeZone: TZ, year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date()); }
@@ -249,8 +250,7 @@
   function dayList(k) { return store.days[k] || []; }
   function sumOf(list, src) { var t = 0; list.forEach(function (x) { if (!src || x.src === src) t += x.amt; }); return t; }
 
-  var toastTimer;
-  function toast(msg) { var t = $('toast'); t.textContent = msg; t.classList.add('on'); clearTimeout(toastTimer); toastTimer = setTimeout(function () { t.classList.remove('on'); }, 1800); }
+  var toast = MBUtil.toast;
 
   var today = todayPH(), selected = today;
   var qd = /[?&]date=(\d{4}-\d{2}-\d{2})/.exec(location.search);  // opened from the Calendar
@@ -343,7 +343,7 @@
       '<small>' + dt.getUTCFullYear() + (selected === today ? ', today' : '') + '</small>';
     var html = '';
     list.slice().reverse().forEach(function (x) {
-      html += '<button class="entry" data-id="' + x.id + '"><div class="what"><b>' + esc(x.cat) + '</b>' +
+      html += '<button class="entry" data-id="' + esc(x.id) + '"><div class="what"><b>' + esc(x.cat) + '</b>' +
         (x.note ? '<span>' + esc(x.note) + '</span>' : '') + '</div>' +
         '<div class="amt num">' + peso(x.amt) + '<small>' + (x.src === 'online' ? 'Online' : 'Cash') + '</small></div></button>';
     });

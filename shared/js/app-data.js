@@ -16,15 +16,28 @@
   }
   /* Stale-tab merge (same idea as shift-lib): before a save, keep the entries another tab saved that this tab does not have.
      Entries deleted in this tab are marked with markGone(id) so the merge never brings them back. */
-  var gone = {};
-  function markGone(id) { if (id) gone[id] = 1; }
+  var GONE_KEY = 'marinabays_gone_v1', GONE_DAYS = 60, gone = {};
+  function stored(key) { try { return JSON.parse(localStorage.getItem(key)); } catch (e) { return null; } }
+  // deletes are also kept in storage (id -> time), so a tab that was open before the delete cannot bring the entry back when it saves
+  function goneStored() { var g = stored(GONE_KEY); return g && typeof g === 'object' && !Array.isArray(g) ? g : {}; }
+  function markGone(id) {
+    if (!id) return; gone[id] = 1;
+    var g = goneStored(), cut = Date.now() - GONE_DAYS * 86400000;
+    Object.keys(g).forEach(function (k) { if (!(g[k] > cut)) delete g[k]; });
+    g[id] = Date.now(); try { localStorage.setItem(GONE_KEY, JSON.stringify(g)); } catch (e) {}
+  }
+  // a whole replace (restore, reset) starts a new list, so ids that come back are not hidden by old deletes
+  function clearGone() { gone = {}; try { localStorage.removeItem(GONE_KEY); } catch (e) {} }
+  function dropGone(list) {
+    var g = goneStored(), i; if (!list) return;
+    for (i = list.length - 1; i >= 0; i--) if (list[i] && (g[list[i].id] || gone[list[i].id])) list.splice(i, 1);
+  }
   function mergeById(mine, theirs, skip) {
-    var have = {}, added = false; skip = skip || gone;
-    (mine || []).forEach(function (x) { have[x.id] = 1; });
-    (theirs || []).forEach(function (x) { if (x && x.id && !have[x.id] && !skip[x.id]) { mine.push(x); have[x.id] = 1; added = true; } });
+    var have = {}, added = false, g = goneStored(); skip = skip || null; if (!mine) return false;
+    mine.forEach(function (x) { have[x.id] = 1; });
+    (theirs || []).forEach(function (x) { if (x && x.id && !have[x.id] && !(skip ? skip[x.id] : (gone[x.id] || g[x.id]))) { mine.push(x); have[x.id] = 1; added = true; } });
     return added;
   }
-  function stored(key) { try { return JSON.parse(localStorage.getItem(key)); } catch (e) { return null; } }
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
 
   /* ---------- menu ---------- */
@@ -45,10 +58,11 @@
   function saveMenu() {
     var st = stored(MENU_KEY);
     if (st) { mergeById(menu.categories, st.categories); mergeById(menu.items, st.items); mergeById(menu.addonGroups, st.addonGroups); }
+    dropGone(menu.categories); dropGone(menu.items); dropGone(menu.addonGroups);
     return writeMenu();
   }
-  function resetMenu() { menu = defaultMenu(); writeMenu(); return menu; }
-  function setMenu(m) { menu = m; menu.addonGroups = menu.addonGroups || []; return writeMenu(); }
+  function resetMenu() { clearGone(); menu = defaultMenu(); writeMenu(); return menu; }
+  function setMenu(m) { clearGone(); menu = m; menu.addonGroups = menu.addonGroups || []; return writeMenu(); }
   function getMenu() { return menu; }
 
   function cat(id) { return menu.categories.filter(function (c) { return c.id === id; })[0] || null; }
@@ -111,12 +125,12 @@
   }
   var inventory = loadInventory();
   function writeInventory() { try { localStorage.setItem(INV_KEY, JSON.stringify(inventory)); return true; } catch (e) { return false; } }
-  function saveInventory() { var st = stored(INV_KEY); if (st) mergeById(inventory.items, st.items); return writeInventory(); }
+  function saveInventory() { var st = stored(INV_KEY); if (st) mergeById(inventory.items, st.items); dropGone(inventory.items); return writeInventory(); }
   function getInventory() { return inventory; }
   // re-read from storage into the same object (other code may hold a reference to it)
   function reloadInventory() { var f = loadInventory(); Object.keys(inventory).forEach(function (k) { delete inventory[k]; }); Object.keys(f).forEach(function (k) { inventory[k] = f[k]; }); return inventory; }
-  function setInventory(v) { inventory = v; return writeInventory(); }
-  function resetInventory() { inventory = defaultInventory(); writeInventory(); return inventory; }
+  function setInventory(v) { clearGone(); inventory = v; return writeInventory(); }
+  function resetInventory() { clearGone(); inventory = defaultInventory(); writeInventory(); return inventory; }
 
   /* ---------- files ---------- */
   function download(name, text, type) {

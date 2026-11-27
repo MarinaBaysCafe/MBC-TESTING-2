@@ -1,5 +1,5 @@
 /* Copyright (c) 2026 Marina Bay's Cafe. All rights reserved. */
-var CACHE = 'mbc-v42';
+var CACHE = 'mbc-v43';
 /* Old page addresses (before the move into folders) and where they are now. Installed apps and bookmarks keep working. */
 var LEGACY = {
   "pos.html": "apps/pos/",
@@ -37,6 +37,9 @@ var FILES = [
   './apps/qr-print/',
   './apps/qr-print/qrcode.js',
   './shared/js/storage-guard.js',
+  './shared/js/backup.js',
+  './shared/js/quota.js',
+  './shared/js/util.js',
   './tests/index.html',
   './tests/tests-money.js',
   './apps/menu/',
